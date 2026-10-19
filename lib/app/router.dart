@@ -1,0 +1,104 @@
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import '../core/constants/app_keys.dart';
+import '../features/games/presentation/games_catalog_screen.dart';
+import '../features/home/presentation/home_screen.dart';
+import '../features/navigation/navigation_shell.dart';
+import '../features/navigation/not_found_screen.dart';
+import '../features/progress/presentation/progress_dashboard_screen.dart';
+import '../features/settings/presentation/settings_screen.dart';
+import '../features/workouts/presentation/daily_workout_intro_screen.dart';
+
+final GlobalKey<NavigatorState> _rootNavigatorKey =
+    GlobalKey<NavigatorState>(debugLabel: 'rootNav');
+
+/// Central GoRouter configuration for BrainForge.
+final GoRouter appRouter = createRouter();
+
+/// Factory function to create [GoRouter] instances for production and testing.
+GoRouter createRouter({
+  String initialLocation = AppKeys.homePath,
+  List<NavigatorObserver>? observers,
+}) {
+  return GoRouter(
+    navigatorKey: _rootNavigatorKey,
+    initialLocation: initialLocation,
+    observers: observers,
+    errorBuilder: (context, state) => NotFoundScreen(uri: state.uri.toString()),
+    routes: [
+      // Root redirect
+      GoRoute(
+        path: '/',
+        redirect: (_, __) => AppKeys.homePath,
+      ),
+
+      // StatefulShellRoute preserving branch states across tabs
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) {
+          return NavigationShell(navigationShell: navigationShell);
+        },
+        branches: [
+          // Branch 0: Home
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppKeys.homePath,
+                pageBuilder: (context, state) => const NoTransitionPage(
+                  child: HomeScreen(),
+                ),
+              ),
+            ],
+          ),
+
+          // Branch 1: Games
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppKeys.gamesPath,
+                pageBuilder: (context, state) => const NoTransitionPage(
+                  child: GamesCatalogScreen(),
+                ),
+              ),
+            ],
+          ),
+
+          // Branch 2: Daily Workout
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppKeys.workoutPath,
+                pageBuilder: (context, state) => const NoTransitionPage(
+                  child: DailyWorkoutIntroScreen(),
+                ),
+              ),
+            ],
+          ),
+
+          // Branch 3: Progress
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppKeys.progressPath,
+                pageBuilder: (context, state) => const NoTransitionPage(
+                  child: ProgressDashboardScreen(),
+                ),
+              ),
+            ],
+          ),
+
+          // Branch 4: Settings
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppKeys.settingsPath,
+                pageBuilder: (context, state) => const NoTransitionPage(
+                  child: SettingsScreen(),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    ],
+  );
+}

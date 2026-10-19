@@ -20,9 +20,9 @@
 
 | Phase | Title | Status | Primary Focus |
 |---|---|---|---|
-| **Phase 0** | **Repository Inspection & Project Plan** | **In Progress / Current** | Workspace inspection, toolchain alignment (FVM), architecture, risk register, baseline analysis & testing. |
-| **Phase 1** | **Flutter Foundation & Design System** | Ready for execution | Feature-first architecture, Dark/Light theme, navigation shell (`go_router`), DI (`get_it`), base UI kit, linting. |
-| **Phase 2** | **Shared Game Engine** | Pending | Game contract, deterministic seed challenge generator, state machines, countdown/timer services, scoring interfaces. |
+| **Phase 0** | **Repository Inspection & Project Plan** | **Complete** | Workspace inspection, toolchain alignment (FVM), architecture, risk register, baseline analysis & testing. |
+| **Phase 1** | **Flutter Foundation & Design System** | **Complete** | Feature-first architecture, Dark/Light theme, navigation shell (`go_router`), DI (`get_it`), base UI kit, linting. |
+| **Phase 2** | **Shared Game Engine** | Ready for execution | Game contract, deterministic seed challenge generator, state machines, countdown/timer services, scoring interfaces. |
 | **Phase 3** | **Memory Grid MVP** | Pending | First fully playable game (Memory Grid), sequence animations, feedback loop, attempts persistence, audio/visual cues. |
 | **Phase 4** | **Local Database & Progress Persistence** | Pending | Persistent storage (Drift SQLite), repositories, history queries, migrations, offline data isolation. |
 | **Phase 5** | **Adaptive Difficulty Engine** | Pending | Independent game difficulty policies, rolling metric evaluation, explainable promotion/demotion engine. |
@@ -37,7 +37,7 @@
 
 ## 3. Phase Detailed Breakdown & Acceptance Criteria
 
-### Phase 0: Repository Inspection and Project Plan (Current)
+### Phase 0: Repository Inspection and Project Plan (Complete)
 - [x] Inspect workspace structure, Git status, and IDE settings.
 - [x] Verify toolchain: FVM Flutter 3.44.5 (Dart 3.12.2) vs system Flutter 3.22.3 (Dart 3.4.4).
 - [x] Verify Android configuration (AGP 7.3.0, Gradle 7.6.3, namespace `com.example.brainforge`).
@@ -47,23 +47,25 @@
 - [x] Produce architecture documentation (`docs/ARCHITECTURE.md`), decisions log (`docs/DECISIONS.md`), risk register (`docs/RISKS.md`), and updated `README.md`.
 - [x] Propose exact Phase 1 implementation sequence.
 
-### Phase 1: Flutter Foundation and Design System
-- [ ] Configure `pubspec.yaml` with vetted dependencies: `flutter_bloc`, `equatable`, `go_router`, `get_it`.
-- [ ] Establish feature-first directory layout under `lib/`.
-- [ ] Configure dependency injection container (`core/di/injection.dart`).
-- [ ] Implement declarative routing (`core/navigation/app_router.dart`) with ShellRoute for bottom navigation and error screen for invalid deep links.
-- [ ] Build Design System (`core/theme/`):
-  - Palette: Deep Indigo (`#0B0E17`), Dark Slate (`#141926`), Electric Purple (`#7C3AED`), Cyan Pulse (`#06B6D4`), Subtle Gold (`#F59E0B`).
-  - Typography, standard spacing scales, rounded surfaces (`12px`, `16px`, `24px`).
-  - Common UI components: `AppButton`, `AppCard`, `AppHeader`, `AppChip`, `AppDialog`, `LoadingIndicator`.
-- [ ] Implement Main Navigation Shell with 5 destinations:
-  1. Home (Quick Challenge & Daily Workout CTA, Streak summary)
-  2. Games (Catalog of 6 cognitive games)
-  3. Daily Workout (Workout start and overview)
-  4. Progress (Analytics and historical trends)
-  5. Settings (Sound, Haptics, Dark/Light Mode, Data management)
-- [ ] Verify responsive layouts on multiple screen dimensions.
-- [ ] Run `fvm flutter analyze` and write baseline navigation/widget tests.
+### Phase 1: Flutter Foundation and Design System (Complete)
+- [x] Configure `pubspec.yaml` with vetted dependencies: `flutter_bloc`, `equatable`, `go_router`, `get_it`, `shared_preferences`.
+- [x] Establish feature-first directory layout under `lib/` (`app/`, `core/`, `features/`).
+- [x] Configure dependency injection container (`core/di/injection.dart`).
+- [x] Implement declarative routing (`app/router.dart`) with `StatefulShellRoute.indexedStack` for bottom navigation and error screen (`NotFoundScreen`) for invalid deep links.
+- [x] Build Design System (`core/theme/` and `core/constants/`):
+  - Palette: Deep Space Navy (`#0B0E17`), Surface Card (`#141926`), Electric Violet (`#7C3AED`), Cyan Pulse (`#06B6D4`), Amber (`#F59E0B`).
+  - Typography, standard spacing scales, rounded surfaces (`8px`, `12px`, `16px`, `24px`).
+  - Common UI components: `AppButton`, `AppCard`, `AppHeader`, `AppChip`, `LoadingIndicator`.
+- [x] Implement Main Navigation Shell with 5 destinations:
+  1. Home (Branding, Welcome header, prominent Daily Workout card with Start Workout CTA, preview cards, progress empty state)
+  2. Games (Selection cards for all 6 planned cognitive games with domain tags and roadmap details)
+  3. Daily Workout (Introductory session format overview with navigation routes back to Home and Games)
+  4. Progress (Objective analytics dashboard with informative empty state and domain breakdown)
+  5. Settings (Interactive theme mode switching, sound toggle, haptic toggle, persisted via SharedPreferences)
+- [x] Verify responsive layouts on standard and narrow (320px width) screens without RenderFlex overflows.
+- [x] Static analysis passes with 0 issues (`fvm flutter analyze`).
+- [x] Comprehensive automated unit and widget test suite passes 18/18 tests (`fvm flutter test`).
+- [x] Debug Android APK builds successfully (`fvm flutter build apk --debug`).
 
 ### Phase 2: Shared Game Engine
 - [ ] Establish abstract domain contracts (`GameEngine`, `GameChallenge`, `GameInput`, `GameResult`).

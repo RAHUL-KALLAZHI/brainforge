@@ -123,3 +123,37 @@ Game challenge generation accepts an optional integer `seed` (using Dart's `math
 ### Consequences
 - Guaranteed test reproducibility across test runs.
 - Daily workout consistency across all users on any given date.
+
+---
+
+## ADR 009: Theme Mode and Settings Persistence Architecture
+
+### Context
+Users require the ability to toggle between Dark Mode (the default), Light Mode, and System Theme, as well as toggle sound effects and haptic feedback. These preferences must update the UI immediately and survive application restarts.
+
+### Decision
+Use `SettingsCubit` managing an immutable `SettingsState`, backed by a dedicated `SettingsRepository` interface implemented via `SharedPreferences`. The repository is registered in `GetIt` during startup and pre-loaded before `runApp`.
+
+### Consequences
+- Instant theme and setting toggles throughout the widget tree via `BlocBuilder`.
+- Fully testable without physical storage through mockable `SharedPreferences` in unit and widget tests.
+- Zero boilerplate in presentation widgets.
+
+---
+
+## ADR 010: Android Toolchain Modernization (AGP 8.6.0, Gradle 8.7, JVM 17 Target)
+
+### Context
+Flutter 3.44.5 (Dart 3.12.2) enforces Android Gradle Plugin $\ge 8.6.0$ and Kotlin $\ge 1.9.0$. The default Flutter template used outdated AGP 7.3.0 and Gradle 7.6.3 with Java 1.8 targets, which caused `compileKotlin` failures (`Language version 1.4 is no longer supported` and inconsistent JVM target compatibility).
+
+### Decision
+Upgrade the Android build configuration:
+- Gradle wrapper: `8.7` (`gradle-8.7-all.zip`)
+- Android Gradle Plugin (AGP): `8.6.0`
+- Kotlin Android plugin: `1.9.22`
+- Compile options & Kotlin options: Aligned to `JavaVersion.VERSION_17` and `jvmTarget = "17"` in `android/app/build.gradle`.
+
+### Consequences
+- Clean, error-free Android debug APK compilation.
+- Complete compatibility with modern Android 14/15 SDKs and plugins (`shared_preferences_android`).
+
