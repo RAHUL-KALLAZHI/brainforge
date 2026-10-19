@@ -48,11 +48,14 @@ test/
 │   ├── game_difficulty_test.dart         # Clamping (1-10), progression, tier naming
 │   ├── game_state_machine_test.dart      # Valid/invalid transitions, gating, timeouts, idempotency
 │   ├── game_timer_test.dart              # Synchronous stepping, pause/resume, countdowns
+│   ├── memory_grid_cubit_test.dart       # Preview pacing, input gating, timeout, pause/resume, attempt saves
+│   ├── memory_grid_engine_test.dart      # Presets, deterministic sequence generation, constraint checks
 │   ├── scoring_service_test.dart         # Formula, speed protection, completion scaling
 │   ├── settings_cubit_test.dart          # Theme, audio, and haptic persistence
 │   └── theme_test.dart                   # Light/dark palette tokens, contrast, extensions
 └── widget/
     ├── app_startup_test.dart             # App launch, theme hydration, shell rendering
+    ├── memory_grid_widget_test.dart      # Catalog launch, 3x3 board, inputs, results, exit dialog, narrow screens
     ├── navigation_test.dart              # 5-tab switching, bottom sheet, 404 fallback
     └── theme_switch_test.dart            # In-app settings toggle reaction
 ```
@@ -65,7 +68,7 @@ test/
 ```bash
 fvm flutter test
 ```
-*Current Status:* **68 / 68 tests passing** (100% pass rate).
+*Current Status:* **88 / 88 tests passing** (100% pass rate across 12 test suites).
 
 ### Running Static Analysis
 ```bash

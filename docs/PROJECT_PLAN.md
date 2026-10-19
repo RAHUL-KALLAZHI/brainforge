@@ -79,14 +79,15 @@
 - [x] Handle pause, resume, app backgrounding, safe abandonment, and double-completion protection.
 - [x] 100% unit test coverage for pure-Dart engine: 68 total tests passing, 0 analyzer issues, Android debug build verified.
 
-### Phase 3: Memory Grid MVP
-- [ ] Implement Memory Grid challenge logic ($N \times M$ grid, highlighted sequence, timing parameters).
-- [ ] Build presentation layer: responsive grid widget, tile lighting animations, sequence reveal controller.
-- [ ] Enforce strict state gating: touch inputs ignored during sequence playback.
-- [ ] Build Game Summary Screen displaying accuracy, response times, score, and replay/next actions.
-- [ ] Wire attempt recording to in-memory/preliminary persistence.
-- [ ] Implement accessible visual indicators (high contrast pulse, shape/number support).
-- [ ] Unit and widget tests covering boundary cases (rapid taps, timeout, sequence mismatches).
+### Phase 3: Memory Grid MVP (Complete)
+- [x] Implement Memory Grid challenge logic ($N \times M$ grid from 3x3 to 5x5, highlighted sequences 3 to 10, validated presets across Levels 1–10).
+- [x] Build presentation layer: responsive grid widget (`MemoryGridBoard`), tactile animated tiles (`MemoryGridTile`), sequence reveal controller.
+- [x] Enforce strict state gating: touch inputs ignored during instructions, countdown, and sequence playback.
+- [x] Build Game Result Screen (`MemoryGridResultView`) displaying accuracy, scaled score, duration, sequence length, and Play Again / Return actions.
+- [x] Wire attempt recording to `GameAttemptRepository` (saved exactly once upon terminal completion, failure, or abandonment).
+- [x] Implement accessible visual indicators (high contrast pulses, checkmark/error badge icons, semantically labeled tiles, screen reader hints).
+- [x] Exit confirmation modal during active play to prevent accidental score loss or abandoned sessions.
+- [x] 100% test coverage across engine, Cubit, and presentation widgets: 88 total automated tests passing (20 new tests in Phase 3), 0 analyzer issues, Android debug build verified.
 
 ### Phase 4: Local Database and Progress Persistence
 - [ ] Integrate chosen database engine (Drift SQLite) and lightweight storage (`shared_preferences`).

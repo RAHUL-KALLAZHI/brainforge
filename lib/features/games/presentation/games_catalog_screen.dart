@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_keys.dart';
 import '../../../core/constants/app_spacing.dart';
 import '../../../core/constants/app_typography.dart';
 import '../../../core/theme/theme_extensions.dart';
@@ -121,6 +123,7 @@ class GamesCatalogScreen extends StatelessWidget {
   void _showGameDetails(BuildContext context, _GameInfo game) {
     final theme = Theme.of(context);
     final customTheme = context.brainForgeTheme;
+    final router = GoRouter.of(context);
 
     showModalBottomSheet<void>(
       context: context,
@@ -215,6 +218,19 @@ class GamesCatalogScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: AppSpacing.xl),
+                if (game.id == 'memory_grid') ...[
+                  AppButton(
+                    key: const Key('play_memory_grid_button'),
+                    label: 'Play Memory Grid',
+                    icon: Icons.play_arrow_rounded,
+                    isFullWidth: true,
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      router.push(AppKeys.memoryGridPath);
+                    },
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                ],
                 AppButton(
                   label: 'Close',
                   variant: AppButtonVariant.outline,

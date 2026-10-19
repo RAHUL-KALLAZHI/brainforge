@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../core/constants/app_keys.dart';
+import '../features/games/memory_grid/presentation/memory_grid_screen.dart';
 import '../features/games/presentation/games_catalog_screen.dart';
 import '../features/home/presentation/home_screen.dart';
 import '../features/navigation/navigation_shell.dart';
@@ -30,6 +31,13 @@ GoRouter createRouter({
       GoRoute(
         path: '/',
         redirect: (_, __) => AppKeys.homePath,
+      ),
+
+      // Fullscreen Memory Grid game session
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: AppKeys.memoryGridPath,
+        builder: (context, state) => const MemoryGridScreen(),
       ),
 
       // StatefulShellRoute preserving branch states across tabs

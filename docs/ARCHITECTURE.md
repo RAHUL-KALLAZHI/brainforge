@@ -146,6 +146,30 @@ Each of the 6 games maintains an isolated difficulty tracker:
 - **Data Isolation:** Repositories accept and return pure domain entities, abstracting all SQL/table mappings.
 - **Privacy & GDPR:** Provides `exportAllUserDataAsJson()` and `purgeAllUserData()` operations locally.
 
+### 3.5. Memory Grid Module Architecture (Phase 3 MVP)
+Located under `lib/features/games/memory_grid/`:
+- **Domain (`domain/memory_grid_config.dart`)**:
+  - Builds validated `GameConfig` presets across Difficulty Levels 1 to 10.
+  - Controls grid dimensions ($3\times3$ to $5\times5$), sequence length (3 to 10), 750ms tile presentation duration, and 15s round timeout limit.
+- **Engine (`logic/memory_grid_engine.dart`)**:
+  - Concrete `GameEngine<SequenceChallenge, int>` implementation.
+  - Implements sequential tile evaluation: compares each player tap at step $k$ with `sequence[k]`.
+  - Rejects inputs out of bounds or exceeding available grid tiles.
+- **State (`logic/memory_grid_state.dart`)**:
+  - Immutable state holding `MemoryGridConfig`, `SequenceChallenge`, `GameSessionState`, `activePreviewTileIndex`, `currentStepIndex`, and `playerSelections`.
+  - Strict input gating: `isInputAllowed` requires `status == GameStatus.playing`, `phase == GamePhase.input`, and `activePreviewTileIndex == null`.
+- **Controller (`logic/memory_grid_cubit.dart`)**:
+  - Subclasses `Cubit<MemoryGridState>`.
+  - Coordinates countdown ticker, sequential preview sequence animation, input evaluation, round timeout triggers, pause/resume, and safe abandonment.
+  - Automatically records exactly one `GameAttempt` into `GameAttemptRepository` upon terminal transition (`completed`, `failed`, `abandoned`).
+- **Presentation (`presentation/`)**:
+  - `memory_grid_screen.dart`: Top-level scaffold with `PopScope` exit protection and dialog.
+  - `memory_grid_board.dart`: Responsive square grid maintaining aspect ratio across form factors.
+  - `memory_grid_tile.dart`: Accessible, tactile tile with scale animations, preview glow, selection feedback, and high contrast semantics.
+  - `memory_grid_header.dart`: Top navigation bar with phase status and difficulty tier indicator.
+  - `memory_grid_ready_view.dart`: Introductory view with difficulty level selector and gameplay tips.
+  - `memory_grid_result_view.dart`: Terminal scorecard with scaled score, accuracy, duration, and replay/return actions.
+
 ---
 
 ## 4. Visual Design System Specifications

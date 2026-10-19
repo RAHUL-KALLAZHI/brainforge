@@ -112,3 +112,40 @@ Phase 2 defines `GameAttemptRepository`:
 - `getRecentAttempts({required String gameId, int count})`: Supplies recent history buffer for Phase 5's adaptive difficulty engine.
 
 Phase 2 ships with `InMemoryGameAttemptRepository`. Phase 4 will replace the underlying implementation with Drift SQLite persistence without changing this domain contract.
+
+---
+
+## 6. Memory Grid Gameplay Mechanics (Phase 3 MVP)
+
+Memory Grid tests visual working memory, spatial encoding, and sequential recall.
+
+### 6.1 Gameplay Flow
+
+1. **Ready Screen:** Player configures difficulty (Level 1–10) and reviews training instructions.
+2. **Pre-Game Countdown:** A 3-second countdown (`3.. 2.. 1..`) prepares the player. Input is strictly disabled.
+3. **Sequence Preview:** Designated grid tiles illuminate sequentially (electric cyan pulse for 750ms with 150ms gap). All touch inputs remain gated off during playback.
+4. **Recall / Input Phase:** Touch inputs activate. A 15-second countdown timer initiates. Player must tap tiles in the exact sequence order.
+5. **Immediate Feedback:**
+   - Correct tap: Tile flashes cyan with a checkmark badge; sequence step index increments.
+   - Incorrect tap: Tile flashes error red with an X badge; session immediately enters `GameStatus.failed`.
+6. **Session Resolution:**
+   - **Success (`GameStatus.completed`):** All sequence tiles correctly reproduced in order. Composite score calculated via `ScoringService`.
+   - **Failure (`GameStatus.failed`):** Incorrect tile selected or response time window expired (15s). Recorded with actual partial correct/incorrect counts.
+   - **Abandonment (`GameStatus.abandoned`):** Back navigation during active play triggers exit confirmation. Confirming records attempt with 0 score.
+7. **Attempt Recording:** Every resolved session saves exactly one `GameAttempt` to `GameAttemptRepository`. Redundant rebuilds and double-taps cannot record duplicate attempts.
+
+### 6.2 Difficulty Mapping (Levels 1 to 10)
+
+| Difficulty Level | Tier Name | Grid Size | Total Tiles | Sequence Length | Presentation Duration | Time Limit |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **Level 1** | Beginner | $3 \times 3$ | 9 | 3 | 750ms | 15s |
+| **Level 2** | Beginner | $3 \times 3$ | 9 | 4 | 750ms | 15s |
+| **Level 3** | Intermediate | $3 \times 3$ | 9 | 5 | 750ms | 15s |
+| **Level 4** | Intermediate | $4 \times 4$ | 16 | 5 | 750ms | 15s |
+| **Level 5** | Advanced | $4 \times 4$ | 16 | 6 | 750ms | 15s |
+| **Level 6** | Advanced | $4 \times 4$ | 16 | 7 | 750ms | 15s |
+| **Level 7** | Expert | $5 \times 5$ | 25 | 7 | 750ms | 15s |
+| **Level 8** | Expert | $5 \times 5$ | 25 | 8 | 750ms | 15s |
+| **Level 9** | Master | $5 \times 5$ | 25 | 9 | 750ms | 15s |
+| **Level 10** | Master | $5 \times 5$ | 25 | 10 | 750ms | 15s |
+

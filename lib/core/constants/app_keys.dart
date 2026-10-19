@@ -8,6 +8,7 @@ abstract final class AppKeys {
   // Route paths
   static const String homePath = '/home';
   static const String gamesPath = '/games';
+  static const String memoryGridPath = '/games/memory-grid';
   static const String workoutPath = '/workout';
   static const String progressPath = '/progress';
   static const String settingsPath = '/settings';
