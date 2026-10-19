@@ -1,0 +1,16 @@
+# BrainForge — Risk Register & Mitigation Strategy
+
+This document catalogues identified technical, architectural, and platform risks for BrainForge, along with concrete mitigations.
+
+| Risk ID | Category | Description | Severity | Likelihood | Mitigation Strategy |
+|---|---|---|---|---|---|
+| **RSK-01** | Toolchain | Host global Flutter SDK (`3.22.3`) differs from project-configured FVM Flutter SDK (`3.44.5`). Direct CLI commands like `flutter build` could inadvertently invoke the wrong SDK. | High | Medium | Enforce `fvm` prefix in all shell commands, CI scripts, and IDE settings (`.vscode/settings.json`). Document in `README.md`. |
+| **RSK-02** | Persistence | Native build failure or schema migration bugs with unmaintained databases (e.g. `isar`). | High | Low | Selected `drift` with SQLite (`sqlite3_flutter_libs`) which is actively maintained, stable, and tested on modern iOS/Android/Desktop runtimes. |
+| **RSK-03** | Gameplay / UI | Race conditions from rapid user taps during sequence presentation or transitions. | High | High | Implement strict state machine gating (`InputLocked` boolean flag in `GameSessionState`). Ignore all pointer events unless state is explicitly `AwaitingInput`. |
+| **RSK-04** | Timing | Timers leaking or continuing to tick when users background the app or navigate away mid-game. | High | Medium | Use `WidgetsBindingObserver` to pause timers during app lifecycle changes (`AppLifecycleState.paused`), and dispose stream subscriptions inside Bloc's `close()` lifecycle method. |
+| **RSK-05** | Storage / Analytics | Database history growing large over months of daily play, slowing down progress queries. | Medium | Low | Create indexed SQL columns on `(gameId, timestamp)` and implement aggregation tables for precomputed daily metrics. |
+| **RSK-06** | Platform / Android | Android Gradle Plugin (AGP 7.3.0) and Kotlin 1.7.10 in template may need upgrade for newer Android SDK levels. | Medium | Medium | Keep standard configuration for Phase 0/1; monitor compatibility when adding native plugins (e.g. SQLite / SharedPreferences); verify against Android 14/15 target SDKs in Phase 11. |
+| **RSK-07** | Git Tracking | Workspace is currently not a git repository (`.git` directory not present). Uncommitted changes could be lost if not version-controlled. | High | Medium | Recommend user run `git init` and commit baseline project structure. |
+| **RSK-08** | Accessibility | High-intensity flashing or rapid visual changes causing discomfort or inaccessibility for motion-sensitive players. | Medium | Medium | Respect `MediaQuery.of(context).disableAnimations` and user-controlled "Reduced Motion" toggle in Settings to switch to gentle fade transitions. |
+| **RSK-09** | Claims & Policy | False claims regarding cognitive improvement violating Google Play / App Store Health & Medical policies. | High | Low | Enforce product rule: No medical or cognitive improvement claims. Present all metrics strictly as in-game test performance measurements. |
+| **RSK-10** | Audio / Fallback | Sound-dependent gameplay (e.g., Color Echo) becoming unplayable when phone is on silent or audio output is missing. | Medium | High | Design all auditory cues to have dual visual indicators (distinct shapes, color pulse, icon glyphs) so audio is never mandatory for success. |
