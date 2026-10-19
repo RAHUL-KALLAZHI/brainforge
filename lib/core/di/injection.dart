@@ -1,5 +1,7 @@
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../features/games/shared/data/game_attempt_repository.dart';
+import '../../features/games/shared/logic/scoring_service.dart';
 import '../../features/settings/data/settings_repository.dart';
 import '../../features/settings/logic/settings_cubit.dart';
 
@@ -15,9 +17,15 @@ Future<void> setupDependencies({SharedPreferences? preferences}) async {
   final prefs = preferences ?? await SharedPreferences.getInstance();
   getIt.registerSingleton<SharedPreferences>(prefs);
 
-  // 2. Repositories
+  // 2. Repositories & Services
   final settingsRepository = SharedPrefsSettingsRepository(prefs);
   getIt.registerSingleton<SettingsRepository>(settingsRepository);
+
+  const scoringService = ScoringService();
+  getIt.registerSingleton<ScoringService>(scoringService);
+
+  final attemptRepository = InMemoryGameAttemptRepository();
+  getIt.registerSingleton<GameAttemptRepository>(attemptRepository);
 
   // 3. Application-level Cubits
   getIt.registerLazySingleton<SettingsCubit>(

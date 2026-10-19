@@ -67,15 +67,17 @@
 - [x] Comprehensive automated unit and widget test suite passes 18/18 tests (`fvm flutter test`).
 - [x] Debug Android APK builds successfully (`fvm flutter build apk --debug`).
 
-### Phase 2: Shared Game Engine
-- [ ] Establish abstract domain contracts (`GameEngine`, `GameChallenge`, `GameInput`, `GameResult`).
-- [ ] Implement immutable `GameSessionState` (Initial, Countdown, Presenting, AwaitingInput, Paused, Completed, Terminated).
-- [ ] Implement robust `GameTimer` service (pause/resume awareness, cancellation, interval ticks, monotonic clock protection).
-- [ ] Build deterministic challenge generator supporting PRNG seeds (`Random(seed)`).
-- [ ] Create standardized Scoring Engine:
+### Phase 2: Shared Game Engine (Complete)
+- [x] Establish abstract domain contracts (`GameEngine`, `GameChallenge`, `GameScore`, `GameResult`, `GameAttempt`, `GameSessionState`).
+- [x] Implement robust `GameStateMachine` with strict transition matrix, input gating, idempotency guards, and error handling.
+- [x] Implement deterministic `GameTimer` and `Ticker` service (`RealTicker` and `ControllableTestTicker` for instant, non-flaky test execution).
+- [x] Build seeded, reproducible challenge generator (`ChallengeGenerator`, `SeededSequenceGenerator`) with parameter validation.
+- [x] Implement pure-Dart `ScoringService`:
   - $\text{Score} = 1000 \times (0.70 \times \text{Accuracy} + 0.20 \times \text{Efficiency} + 0.10 \times \text{Completion})$.
-- [ ] Handle interruption, app lifecycle backgrounding, safe exit, and double-submission protection.
-- [ ] Write 100% unit-tested game engine suite without widget dependencies.
+  - Speed-guessing protection: efficiency scaled by accuracy so rapid incorrect answers yield zero speed points.
+- [x] Create attempt recording model (`GameAttempt`) and repository contract (`GameAttemptRepository`, `InMemoryGameAttemptRepository`).
+- [x] Handle pause, resume, app backgrounding, safe abandonment, and double-completion protection.
+- [x] 100% unit test coverage for pure-Dart engine: 68 total tests passing, 0 analyzer issues, Android debug build verified.
 
 ### Phase 3: Memory Grid MVP
 - [ ] Implement Memory Grid challenge logic ($N \times M$ grid, highlighted sequence, timing parameters).

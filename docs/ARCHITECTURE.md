@@ -87,19 +87,48 @@ abstract class GameEngine<C extends GameChallenge, I extends GameInput> {
 }
 ```
 
-#### Finite State Machine for Game Sessions:
+### 3.2. Shared Game Engine Architecture
+The game engine is implemented in pure Dart (`lib/features/games/shared/`), completely decoupled from Flutter widgets, navigation, and persistent database layers.
+
+#### Core Contracts & Models:
+- **`GameStatus` (`domain/game_status.dart`)**: Enum capturing lifecycle states: `initial`, `instructions`, `countdown`, `playing`, `paused`, `completed`, `failed`, `abandoned`.
+- **`GamePhase` (`domain/game_status.dart`)**: Enum capturing active play phases: `preview`, `input`, `roundFeedback`, `intermission`.
+- **`GameDifficulty` (`domain/game_difficulty.dart`)**: Value object enforcing levels 1 to 10 with `.clamped()`, progression step methods (`increase()`, `decrease()`), and tier descriptors (`Beginner`, `Intermediate`, `Advanced`, `Expert`, `Master`).
+- **`GameConfig` (`domain/game_config.dart`)**: Immutable configuration with strict validation for `gridRows`, `gridColumns`, `sequenceLength`, `presentationDuration`, `responseTimeLimit`, `distractorCount`, `targetRounds`, `seed`, and `allowDuplicates`.
+- **`GameChallenge` (`domain/game_challenge.dart`)**: Abstract base class for round challenges; concrete `SequenceChallenge` models ordered integer sequences.
+- **`GameScore` (`domain/game_score.dart`)**: Detailed breakdown containing `accuracy`, `efficiency`, `completion`, and `scaledScore` (clamped 0–1000).
+- **`GameResult` (`domain/game_result.dart`)**: Complete summary generated upon terminal session state.
+- **`GameAttempt` (`domain/game_attempt.dart`)**: Immutable record for analytics, including median response time calculation.
+- **`GameAttemptRepository` (`data/game_attempt_repository.dart`)**: Repository contract with `InMemoryGameAttemptRepository` implementation.
+
+#### State Machine Matrix:
 ```
-[Idle] 
-   └──> [Countdown (3..2..1)] 
-           └──> [Presenting Challenge (Input Locked)] 
-                   └──> [Awaiting Input (Timer Running)] 
-                           ├──> (Correct / Mistake Feedback) ──> [Next Round]
-                           ├──> [Paused] ──> [Resumed]
-                           └──> [Time Expired / Completed] ──> [Result Summary]
+[initial]      ──> [instructions] / [countdown] / [abandoned]
+[instructions] ──> [countdown] / [abandoned]
+[countdown]    ──> [playing] / [abandoned]
+[playing]      ──> [paused] / [completed] / [failed] / [abandoned]
+[paused]       ──> [playing] / [abandoned]
+[completed]    ──> [initial] (via restart)
+[failed]       ──> [initial] (via restart)
+[abandoned]    ──> [initial] (via restart)
 ```
-- Timers are driven by a centralized `GameTicker` emitting ticks via streams.
-- State machines prevent input submission while in `Presenting` or `Paused` states.
-- Completion events are idempotent: multiple trigger dispatches cannot generate duplicate XP or database writes.
+- Input is rejected if `isInputAllowed` is false (disallowed during countdown, preview, paused, and terminal states).
+- Timeouts immediately mark the session as `failed`; any late input is rejected.
+- Successful inputs immediately halt the round response timer, eliminating race conditions.
+- Terminal completions are idempotent; multiple trigger calls are ignored.
+
+#### Deterministic Tickers & Clocks:
+- Centralized `Ticker` contract decoupling logic from real clocks.
+- `RealTicker` uses `Stream.periodic` for production runtime.
+- `ControllableTestTicker` uses synchronous streams with manual `step()` and `advanceToCompletion()`, enabling instantaneous, zero-delay unit tests.
+
+#### Standardized Scoring Model:
+$$\text{Score} = \text{round}\Big(1000 \times (0.70 \times \text{Accuracy} + 0.20 \times \text{Efficiency} + 0.10 \times \text{Completion})\Big)$$
+- **Accuracy:** $\frac{\text{Correct}}{\text{Total Opportunities}}$ clamped to $[0, 1]$.
+- **Completion:** $\frac{\text{Completed Rounds}}{\text{Target Rounds}}$ clamped to $[0, 1]$.
+- **Efficiency:** Linear interpolation between `targetResponseTime` (1.0) and `maxResponseTime` (0.0).
+- **Speed-Gaming Guard:** $\text{Efficiency}_{\text{effective}} = \text{Raw Efficiency} \times \text{Accuracy}$. Rapid incorrect guessing cannot inflate the score.
+- Abandoned sessions always yield an overall score of 0.
 
 ### 3.3. Adaptive Difficulty Engine
 Each of the 6 games maintains an isolated difficulty tracker:
