@@ -4,9 +4,12 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_spacing.dart';
 import '../../../core/constants/app_typography.dart';
 import '../../../core/theme/theme_extensions.dart';
+import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_chip.dart';
 import '../../../core/widgets/app_header.dart';
+import '../../../core/di/injection.dart';
+import '../../games/shared/data/game_attempt_repository.dart';
 import '../logic/settings_cubit.dart';
 import '../logic/settings_state.dart';
 
@@ -240,6 +243,40 @@ class SettingsScreen extends StatelessWidget {
                             color: customTheme.textMuted,
                           ),
                         ),
+                        const SizedBox(height: AppSpacing.md),
+                        Divider(color: customTheme.cardBorder, height: 1),
+                        const SizedBox(height: AppSpacing.md),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Local Game History',
+                                    style: AppTypography.titleMedium.copyWith(
+                                      color: theme.colorScheme.onSurface,
+                                    ),
+                                  ),
+                                  const SizedBox(height: AppSpacing.xxs),
+                                  Text(
+                                    'Delete local SQLite attempt logs and scores',
+                                    style: AppTypography.bodySmall.copyWith(
+                                      color: customTheme.textMuted,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: AppSpacing.sm),
+                            AppButton(
+                              label: 'Clear',
+                              icon: Icons.delete_outline_rounded,
+                              variant: AppButtonVariant.ghost,
+                              onPressed: () => _confirmClearHistory(context),
+                            ),
+                          ],
+                        ),
                       ],
                     ),
                   ),
@@ -312,6 +349,43 @@ class SettingsScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _confirmClearHistory(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Clear Game History?'),
+        content: const Text(
+          'This will permanently delete all local game attempt logs, personal bests, and performance metrics from device storage. Your settings (theme, audio, haptics) will not be affected.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(ctx).colorScheme.error,
+            ),
+            child: const Text('Clear History'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      await getIt<GameAttemptRepository>().clearAll();
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Local game attempt history has been cleared.'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
   }
 }
 

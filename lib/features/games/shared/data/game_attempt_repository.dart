@@ -23,6 +23,9 @@ abstract class GameAttemptRepository {
     int count = 5,
   });
 
+  /// Retrieves all recorded attempts across all games, ordered latest first.
+  Future<List<GameAttempt>> getAllAttempts({int limit = 100});
+
   /// Clears all recorded attempts (used for data wipes or testing).
   Future<void> clearAll();
 }
@@ -62,6 +65,13 @@ class InMemoryGameAttemptRepository implements GameAttemptRepository {
     final filtered = _attempts.where((a) => a.gameId == gameId).toList()
       ..sort((a, b) => b.completedAt.compareTo(a.completedAt));
     return filtered.take(count).toList();
+  }
+
+  @override
+  Future<List<GameAttempt>> getAllAttempts({int limit = 100}) async {
+    final sorted = List<GameAttempt>.from(_attempts)
+      ..sort((a, b) => b.completedAt.compareTo(a.completedAt));
+    return sorted.take(limit).toList();
   }
 
   @override

@@ -1,14 +1,21 @@
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../database/app_database.dart';
+import '../../features/games/shared/data/drift_game_attempt_repository.dart';
 import '../../features/games/shared/data/game_attempt_repository.dart';
 import '../../features/games/shared/logic/scoring_service.dart';
+import '../../features/progress/logic/progress_cubit.dart';
 import '../../features/settings/data/settings_repository.dart';
 import '../../features/settings/logic/settings_cubit.dart';
 
 final GetIt getIt = GetIt.instance;
 
 /// Central dependency injection initialization for BrainForge.
-Future<void> setupDependencies({SharedPreferences? preferences}) async {
+Future<void> setupDependencies({
+  SharedPreferences? preferences,
+  AppDatabase? database,
+  GameAttemptRepository? attemptRepository,
+}) async {
   if (getIt.isRegistered<SharedPreferences>()) {
     return;
   }
@@ -17,23 +24,34 @@ Future<void> setupDependencies({SharedPreferences? preferences}) async {
   final prefs = preferences ?? await SharedPreferences.getInstance();
   getIt.registerSingleton<SharedPreferences>(prefs);
 
-  // 2. Repositories & Services
+  // 2. Database
+  final db = database ?? AppDatabase();
+  getIt.registerSingleton<AppDatabase>(db);
+
+  // 3. Repositories & Services
   final settingsRepository = SharedPrefsSettingsRepository(prefs);
   getIt.registerSingleton<SettingsRepository>(settingsRepository);
 
   const scoringService = ScoringService();
   getIt.registerSingleton<ScoringService>(scoringService);
 
-  final attemptRepository = InMemoryGameAttemptRepository();
-  getIt.registerSingleton<GameAttemptRepository>(attemptRepository);
+  final repo = attemptRepository ?? DriftGameAttemptRepository(db);
+  getIt.registerSingleton<GameAttemptRepository>(repo);
 
-  // 3. Application-level Cubits
+  // 4. Application-level Cubits
   getIt.registerLazySingleton<SettingsCubit>(
     () => SettingsCubit(getIt<SettingsRepository>()),
+  );
+
+  getIt.registerFactory<ProgressCubit>(
+    () => ProgressCubit(getIt<GameAttemptRepository>()),
   );
 }
 
 /// Reset dependencies between unit/widget test runs.
 Future<void> resetDependencies() async {
+  if (getIt.isRegistered<AppDatabase>()) {
+    await getIt<AppDatabase>().close();
+  }
   await getIt.reset();
 }
