@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../core/constants/app_keys.dart';
 import '../features/games/color_echo/presentation/color_echo_screen.dart';
+import '../features/games/focus_hunter/presentation/focus_hunter_screen.dart';
 import '../features/games/memory_grid/presentation/memory_grid_screen.dart';
 import '../features/games/presentation/games_catalog_screen.dart';
 import '../features/home/presentation/home_screen.dart';
@@ -46,6 +47,13 @@ GoRouter createRouter({
         parentNavigatorKey: _rootNavigatorKey,
         path: AppKeys.colorEchoPath,
         builder: (context, state) => const ColorEchoScreen(),
+      ),
+
+      // Fullscreen Focus Hunter game session
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: AppKeys.focusHunterPath,
+        builder: (context, state) => const FocusHunterScreen(),
       ),
 
       // StatefulShellRoute preserving branch states across tabs

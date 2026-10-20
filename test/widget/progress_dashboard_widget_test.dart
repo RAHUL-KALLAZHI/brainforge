@@ -115,7 +115,10 @@ void main() {
 
     expect(find.text('Gameplay Overview'), findsOneWidget);
 
-    await cubit.clearHistory();
+    await tester.runAsync(() async {
+      await cubit.clearHistory();
+    });
+    await tester.pump();
     await tester.pumpAndSettle();
 
     expect(find.text('Analytics Awaiting Data'), findsOneWidget);
@@ -127,63 +130,66 @@ void main() {
       (tester) async {
     final now = DateTime.now();
 
-    // 1. Color Echo attempt
-    await repository.saveAttempt(
-      GameAttempt(
-        id: 'ce_attempt_1',
-        gameId: 'color_echo',
-        difficultyLevel: 1,
-        status: GameStatus.completed,
-        finalScore: 1600,
-        accuracy: 1.0,
-        correctCount: 5,
-        incorrectCount: 0,
-        missedCount: 0,
-        responseTimesMs: const [300, 320],
-        startedAt: now.subtract(const Duration(minutes: 5)),
-        completedAt: now.subtract(const Duration(minutes: 4)),
-      ),
-    );
+    await tester.runAsync(() async {
+      // 1. Color Echo attempt
+      await repository.saveAttempt(
+        GameAttempt(
+          id: 'ce_attempt_1',
+          gameId: 'color_echo',
+          difficultyLevel: 1,
+          status: GameStatus.completed,
+          finalScore: 1600,
+          accuracy: 1.0,
+          correctCount: 5,
+          incorrectCount: 0,
+          missedCount: 0,
+          responseTimesMs: const [300, 320],
+          startedAt: now.subtract(const Duration(minutes: 5)),
+          completedAt: now.subtract(const Duration(minutes: 4)),
+        ),
+      );
 
-    // 2. Memory Grid attempt
-    await repository.saveAttempt(
-      GameAttempt(
-        id: 'mg_attempt_1',
-        gameId: 'memory_grid',
-        difficultyLevel: 2,
-        status: GameStatus.completed,
-        finalScore: 2100,
-        accuracy: 1.0,
-        correctCount: 6,
-        incorrectCount: 0,
-        missedCount: 0,
-        responseTimesMs: const [250, 260],
-        startedAt: now.subtract(const Duration(minutes: 10)),
-        completedAt: now.subtract(const Duration(minutes: 9)),
-      ),
-    );
+      // 2. Memory Grid attempt
+      await repository.saveAttempt(
+        GameAttempt(
+          id: 'mg_attempt_1',
+          gameId: 'memory_grid',
+          difficultyLevel: 2,
+          status: GameStatus.completed,
+          finalScore: 2100,
+          accuracy: 1.0,
+          correctCount: 6,
+          incorrectCount: 0,
+          missedCount: 0,
+          responseTimesMs: const [250, 260],
+          startedAt: now.subtract(const Duration(minutes: 10)),
+          completedAt: now.subtract(const Duration(minutes: 9)),
+        ),
+      );
 
-    // 3. Unknown game attempt (fallback test)
-    await repository.saveAttempt(
-      GameAttempt(
-        id: 'unknown_attempt_1',
-        gameId: 'speed_math',
-        difficultyLevel: 3,
-        status: GameStatus.failed,
-        finalScore: 400,
-        accuracy: 0.6,
-        correctCount: 3,
-        incorrectCount: 2,
-        missedCount: 0,
-        responseTimesMs: const [500],
-        startedAt: now.subtract(const Duration(minutes: 15)),
-        completedAt: now.subtract(const Duration(minutes: 14)),
-      ),
-    );
+      // 3. Unknown game attempt (fallback test)
+      await repository.saveAttempt(
+        GameAttempt(
+          id: 'unknown_attempt_1',
+          gameId: 'speed_math',
+          difficultyLevel: 3,
+          status: GameStatus.failed,
+          finalScore: 400,
+          accuracy: 0.6,
+          correctCount: 3,
+          incorrectCount: 2,
+          missedCount: 0,
+          responseTimesMs: const [500],
+          startedAt: now.subtract(const Duration(minutes: 15)),
+          completedAt: now.subtract(const Duration(minutes: 14)),
+        ),
+      );
 
-    await cubit.loadProgress();
+      await cubit.loadProgress();
+    });
 
     await tester.pumpWidget(buildDashboard());
+    await tester.pump();
     await tester.pumpAndSettle();
 
     // Verify recent attempts display correct game names
@@ -207,43 +213,46 @@ void main() {
       (tester) async {
     final now = DateTime.now();
 
-    // Initial state: older Memory Grid (mg_0) and newer Color Echo (ce_1)
-    await repository.saveAttempt(
-      GameAttempt(
-        id: 'mg_0',
-        gameId: 'memory_grid',
-        difficultyLevel: 1,
-        status: GameStatus.completed,
-        finalScore: 1000,
-        accuracy: 1.0,
-        correctCount: 3,
-        incorrectCount: 0,
-        missedCount: 0,
-        responseTimesMs: const [300],
-        startedAt: now.subtract(const Duration(minutes: 10)),
-        completedAt: now.subtract(const Duration(minutes: 9)),
-      ),
-    );
+    await tester.runAsync(() async {
+      // Initial state: older Memory Grid (mg_0) and newer Color Echo (ce_1)
+      await repository.saveAttempt(
+        GameAttempt(
+          id: 'mg_0',
+          gameId: 'memory_grid',
+          difficultyLevel: 1,
+          status: GameStatus.completed,
+          finalScore: 1000,
+          accuracy: 1.0,
+          correctCount: 3,
+          incorrectCount: 0,
+          missedCount: 0,
+          responseTimesMs: const [300],
+          startedAt: now.subtract(const Duration(minutes: 10)),
+          completedAt: now.subtract(const Duration(minutes: 9)),
+        ),
+      );
 
-    await repository.saveAttempt(
-      GameAttempt(
-        id: 'ce_1',
-        gameId: 'color_echo',
-        difficultyLevel: 1,
-        status: GameStatus.completed,
-        finalScore: 1500,
-        accuracy: 1.0,
-        correctCount: 4,
-        incorrectCount: 0,
-        missedCount: 0,
-        responseTimesMs: const [250],
-        startedAt: now.subtract(const Duration(minutes: 5)),
-        completedAt: now.subtract(const Duration(minutes: 4)),
-      ),
-    );
+      await repository.saveAttempt(
+        GameAttempt(
+          id: 'ce_1',
+          gameId: 'color_echo',
+          difficultyLevel: 1,
+          status: GameStatus.completed,
+          finalScore: 1500,
+          accuracy: 1.0,
+          correctCount: 4,
+          incorrectCount: 0,
+          missedCount: 0,
+          responseTimesMs: const [250],
+          startedAt: now.subtract(const Duration(minutes: 5)),
+          completedAt: now.subtract(const Duration(minutes: 4)),
+        ),
+      );
 
-    await cubit.loadProgress();
+      await cubit.loadProgress();
+    });
     await tester.pumpWidget(buildDashboard());
+    await tester.pump();
     await tester.pumpAndSettle();
 
     // Verify initial rendering: top item is ce_1, bottom is mg_0
@@ -267,8 +276,12 @@ void main() {
       completedAt: now,
     );
 
-    await repository.saveAttempt(mgNew);
+    await tester.runAsync(() async {
+      await repository.saveAttempt(mgNew);
+      await Future.delayed(const Duration(milliseconds: 50));
+    });
     // Cubit updates reactively via repository.onAttemptsChanged
+    await tester.pump();
     await tester.pumpAndSettle();
 
     // Verify mg_new_latest is now the newest top attempt
@@ -302,5 +315,88 @@ void main() {
     // Verify score on new attempt
     expect(find.text('Personal Best Score: 2800 pts'), findsOneWidget);
     expect(find.text('3 total attempts recorded'), findsOneWidget);
+  });
+
+  testWidgets(
+      'displays Focus Hunter alongside Memory Grid and Color Echo in recent attempts with proper name and icon',
+      (tester) async {
+    final now = DateTime.now();
+
+    await tester.runAsync(() async {
+      // 1. Focus Hunter attempt
+      await repository.saveAttempt(
+        GameAttempt(
+          id: 'fh_attempt_1',
+          gameId: 'focus_hunter',
+          difficultyLevel: 2,
+          status: GameStatus.completed,
+          finalScore: 1800,
+          accuracy: 1.0,
+          correctCount: 2,
+          incorrectCount: 0,
+          missedCount: 0,
+          responseTimesMs: const [320, 290],
+          startedAt: now.subtract(const Duration(minutes: 5)),
+          completedAt: now.subtract(const Duration(minutes: 4)),
+        ),
+      );
+
+      // 2. Color Echo attempt
+      await repository.saveAttempt(
+        GameAttempt(
+          id: 'ce_attempt_2',
+          gameId: 'color_echo',
+          difficultyLevel: 1,
+          status: GameStatus.completed,
+          finalScore: 1200,
+          accuracy: 1.0,
+          correctCount: 3,
+          incorrectCount: 0,
+          missedCount: 0,
+          responseTimesMs: const [310],
+          startedAt: now.subtract(const Duration(minutes: 10)),
+          completedAt: now.subtract(const Duration(minutes: 9)),
+        ),
+      );
+
+      // 3. Memory Grid attempt
+      await repository.saveAttempt(
+        GameAttempt(
+          id: 'mg_attempt_3',
+          gameId: 'memory_grid',
+          difficultyLevel: 3,
+          status: GameStatus.completed,
+          finalScore: 2400,
+          accuracy: 1.0,
+          correctCount: 5,
+          incorrectCount: 0,
+          missedCount: 0,
+          responseTimesMs: const [270],
+          startedAt: now.subtract(const Duration(minutes: 15)),
+          completedAt: now.subtract(const Duration(minutes: 14)),
+        ),
+      );
+
+      await cubit.loadProgress();
+    });
+
+    await tester.pumpWidget(buildDashboard());
+    await tester.pump();
+    await tester.pumpAndSettle();
+
+    // Verify recent attempts display all 3 game names accurately
+    expect(find.text('RECENT ATTEMPTS'), findsOneWidget);
+    expect(find.text('Focus Hunter'), findsOneWidget);
+    expect(find.text('Color Echo'), findsOneWidget);
+    expect(find.text('Memory Grid'), findsWidgets);
+
+    // Verify correct icons for all 3 games
+    expect(find.byIcon(Icons.center_focus_strong_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.music_note_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.grid_4x4_rounded), findsWidgets);
+
+    // Verify stats aggregates
+    expect(find.text('3 total attempts recorded'), findsOneWidget);
+    expect(find.text('Personal Best Score: 2400 pts'), findsOneWidget);
   });
 }

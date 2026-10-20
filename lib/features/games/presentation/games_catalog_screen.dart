@@ -59,12 +59,10 @@ class GamesCatalogScreen extends StatelessWidget {
       description:
           'Quickly locate target symbols amidst increasingly similar distractors.',
       icon: Icons.center_focus_strong_rounded,
-      phaseAvailability: 'Phase 6',
+      phaseAvailability: 'Playable',
       chipColor: AppChipColor.cyan,
       details:
-          'Focus Hunter measures selective visual search, inhibition, and response '
-          'times under time pressure with target-present and target-absent trials. '
-          'Available in Phase 6.',
+          'Focus Hunter tests selective visual attention, distractor inhibition, and rapid target identification under time pressure. Available now in Phase 6.2.',
     ),
     _GameInfo(
       id: GameRegistry.vanishingCards,
@@ -241,6 +239,19 @@ class GamesCatalogScreen extends StatelessWidget {
                     onPressed: () {
                       Navigator.of(context).pop();
                       router.push(AppKeys.colorEchoPath);
+                    },
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                ],
+                if (game.id == GameRegistry.focusHunter) ...[
+                  AppButton(
+                    key: const Key('play_focus_hunter_button'),
+                    label: 'Play Focus Hunter',
+                    icon: Icons.play_arrow_rounded,
+                    isFullWidth: true,
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      router.push(AppKeys.focusHunterPath);
                     },
                   ),
                   const SizedBox(height: AppSpacing.md),
