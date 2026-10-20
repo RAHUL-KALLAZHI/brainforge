@@ -1,14 +1,21 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../games/shared/data/adaptive_difficulty_repository.dart';
 import '../../games/shared/data/game_attempt_repository.dart';
 import '../../games/shared/domain/game_attempt.dart';
+import '../../games/shared/domain/game_difficulty.dart';
 import '../../games/shared/domain/game_status.dart';
 import 'progress_state.dart';
 
 /// Cubit managing loading, computing, and streaming user gameplay analytics.
 class ProgressCubit extends Cubit<ProgressState> {
   final GameAttemptRepository _repository;
+  final AdaptiveDifficultyRepository? _difficultyRepository;
 
-  ProgressCubit(this._repository) : super(const ProgressLoading()) {
+  ProgressCubit(
+    this._repository, {
+    AdaptiveDifficultyRepository? difficultyRepository,
+  })  : _difficultyRepository = difficultyRepository,
+        super(const ProgressLoading()) {
     _init();
   }
 
@@ -21,8 +28,16 @@ class ProgressCubit extends Cubit<ProgressState> {
     try {
       emit(const ProgressLoading());
       final attempts = await _repository.getAllAttempts(limit: 100);
+      GameDifficulty? mgDifficulty;
+      if (_difficultyRepository != null) {
+        try {
+          mgDifficulty =
+              await _difficultyRepository.getDifficulty('memory_grid');
+        } catch (_) {}
+      }
       if (!isClosed) {
-        emit(ProgressLoaded(_computeStats(attempts)));
+        emit(ProgressLoaded(
+            _computeStats(attempts, memoryGridDifficulty: mgDifficulty)));
       }
     } catch (e) {
       if (!isClosed) {
@@ -43,9 +58,12 @@ class ProgressCubit extends Cubit<ProgressState> {
     }
   }
 
-  ProgressStats _computeStats(List<GameAttempt> attempts) {
+  ProgressStats _computeStats(
+    List<GameAttempt> attempts, {
+    GameDifficulty? memoryGridDifficulty,
+  }) {
     if (attempts.isEmpty) {
-      return const ProgressStats();
+      return ProgressStats(memoryGridDifficulty: memoryGridDifficulty);
     }
 
     final memoryGridAttempts =
@@ -103,6 +121,7 @@ class ProgressCubit extends Cubit<ProgressState> {
       currentStreakDays: streak,
       completedWorkouts: 0, // Distinct from single game attempts
       recentAttempts: attempts.take(10).toList(),
+      memoryGridDifficulty: memoryGridDifficulty,
     );
   }
 

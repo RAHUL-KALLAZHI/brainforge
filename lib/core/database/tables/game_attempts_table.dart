@@ -4,8 +4,10 @@ import 'package:drift/drift.dart';
 ///
 /// Stores terminal and historical attempt data for all BrainForge mini-games.
 @DataClassName('GameAttemptEntry')
-@TableIndex(name: 'idx_game_attempts_game_completed', columns: {#gameId, #completedAt})
-@TableIndex(name: 'idx_game_attempts_game_score', columns: {#gameId, #finalScore})
+@TableIndex(
+    name: 'idx_game_attempts_game_completed', columns: {#gameId, #completedAt})
+@TableIndex(
+    name: 'idx_game_attempts_game_score', columns: {#gameId, #finalScore})
 @TableIndex(name: 'idx_game_attempts_completed', columns: {#completedAt})
 class GameAttempts extends Table {
   /// Unique attempt identifier (e.g., 'mg_1730000000000_42').

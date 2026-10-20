@@ -52,7 +52,8 @@ void main() {
   }
 
   group('DriftGameAttemptRepository Unit Tests', () {
-    test('initial state has empty dataset and returns null for personal best', () async {
+    test('initial state has empty dataset and returns null for personal best',
+        () async {
       final attempts = await repository.getAttempts(gameId: 'memory_grid');
       final allAttempts = await repository.getAllAttempts();
       final pb = await repository.getPersonalBest('memory_grid');
@@ -62,7 +63,8 @@ void main() {
       expect(pb, isNull);
     });
 
-    test('saveAttempt and getAttempts preserve full domain data fidelity', () async {
+    test('saveAttempt and getAttempts preserve full domain data fidelity',
+        () async {
       final startTime = DateTime.utc(2026, 10, 19, 10, 0, 0);
       final finishTime = DateTime.utc(2026, 10, 19, 10, 0, 15);
       final attempt = createTestAttempt(
@@ -129,7 +131,8 @@ void main() {
       );
     });
 
-    test('validates inputs and throws ArgumentError on invalid parameters', () async {
+    test('validates inputs and throws ArgumentError on invalid parameters',
+        () async {
       final emptyId = createTestAttempt(id: '');
       expect(() => repository.saveAttempt(emptyId), throwsArgumentError);
 
@@ -137,10 +140,12 @@ void main() {
       expect(() => repository.saveAttempt(emptyGameId), throwsArgumentError);
 
       final invalidDifficulty = createTestAttempt(difficultyLevel: 0);
-      expect(() => repository.saveAttempt(invalidDifficulty), throwsArgumentError);
+      expect(
+          () => repository.saveAttempt(invalidDifficulty), throwsArgumentError);
     });
 
-    test('idempotency: saving attempt with same ID updates without duplicating', () async {
+    test('idempotency: saving attempt with same ID updates without duplicating',
+        () async {
       final attempt1 = createTestAttempt(
         id: 'duplicate_test_id',
         finalScore: 1000,
@@ -158,7 +163,9 @@ void main() {
       expect(attempts.first.finalScore, equals(1200));
     });
 
-    test('deterministic ordering: ordered by completedAt descending and id descending', () async {
+    test(
+        'deterministic ordering: ordered by completedAt descending and id descending',
+        () async {
       final base = DateTime.utc(2026, 10, 19, 12, 0, 0);
 
       final older = createTestAttempt(
@@ -192,8 +199,10 @@ void main() {
     });
 
     test('filters accurately by gameId', () async {
-      final gridAttempt = createTestAttempt(id: 'grid_1', gameId: 'memory_grid');
-      final colorEchoAttempt = createTestAttempt(id: 'echo_1', gameId: 'color_echo');
+      final gridAttempt =
+          createTestAttempt(id: 'grid_1', gameId: 'memory_grid');
+      final colorEchoAttempt =
+          createTestAttempt(id: 'echo_1', gameId: 'color_echo');
 
       await repository.saveAttempt(gridAttempt);
       await repository.saveAttempt(colorEchoAttempt);
@@ -211,12 +220,16 @@ void main() {
       expect(allResults.length, equals(2));
     });
 
-    test('getPersonalBest returns highest score for game and null if none', () async {
+    test('getPersonalBest returns highest score for game and null if none',
+        () async {
       expect(await repository.getPersonalBest('memory_grid'), isNull);
 
-      await repository.saveAttempt(createTestAttempt(id: 'score_800', finalScore: 800));
-      await repository.saveAttempt(createTestAttempt(id: 'score_2100', finalScore: 2100));
-      await repository.saveAttempt(createTestAttempt(id: 'score_1500', finalScore: 1500));
+      await repository
+          .saveAttempt(createTestAttempt(id: 'score_800', finalScore: 800));
+      await repository
+          .saveAttempt(createTestAttempt(id: 'score_2100', finalScore: 2100));
+      await repository
+          .saveAttempt(createTestAttempt(id: 'score_1500', finalScore: 1500));
 
       final pb = await repository.getPersonalBest('memory_grid');
       expect(pb, isNotNull);
@@ -234,7 +247,8 @@ void main() {
         );
       }
 
-      final recent3 = await repository.getRecentAttempts(gameId: 'memory_grid', count: 3);
+      final recent3 =
+          await repository.getRecentAttempts(gameId: 'memory_grid', count: 3);
       expect(recent3.length, equals(3));
       expect(recent3[0].id, equals('attempt_10'));
       expect(recent3[1].id, equals('attempt_9'));
@@ -243,7 +257,8 @@ void main() {
 
     test('clearAll wipes all attempts cleanly', () async {
       await repository.saveAttempt(createTestAttempt(id: 'a1'));
-      await repository.saveAttempt(createTestAttempt(id: 'a2', gameId: 'color_echo'));
+      await repository
+          .saveAttempt(createTestAttempt(id: 'a2', gameId: 'color_echo'));
 
       expect((await repository.getAllAttempts()).length, equals(2));
 
@@ -253,7 +268,8 @@ void main() {
       expect(await repository.getPersonalBest('memory_grid'), isNull);
     });
 
-    test('watchAllAttempts emits updated lists on database insertions', () async {
+    test('watchAllAttempts emits updated lists on database insertions',
+        () async {
       final stream = repository.watchAllAttempts();
 
       expect(
@@ -270,8 +286,8 @@ void main() {
       await repository.saveAttempt(createTestAttempt(id: 's2'));
     });
 
-    test('schema version is 1 and table metadata is valid', () {
-      expect(db.schemaVersion, equals(1));
+    test('schema version is 2 and table metadata is valid', () {
+      expect(db.schemaVersion, equals(2));
       expect(db.gameAttempts.actualTableName, equals('game_attempts'));
       expect(db.gameAttempts.$columns.length, equals(13));
     });

@@ -9,6 +9,7 @@ import 'package:brainforge/features/games/shared/domain/game_difficulty.dart';
 import 'package:brainforge/features/games/shared/domain/game_status.dart';
 import '../logic/memory_grid_cubit.dart';
 import '../logic/memory_grid_state.dart';
+import 'package:brainforge/features/games/shared/logic/adaptive_difficulty_service.dart';
 import 'widgets/memory_grid_board.dart';
 import 'widgets/memory_grid_header.dart';
 import 'widgets/memory_grid_ready_view.dart';
@@ -17,17 +18,19 @@ import 'widgets/memory_grid_result_view.dart';
 /// Top-level playable screen for the Memory Grid mini-game.
 class MemoryGridScreen extends StatelessWidget {
   final MemoryGridCubit? cubit;
-  final GameDifficulty initialDifficulty;
+  final GameDifficulty? initialDifficulty;
   final int? initialSeed;
   final GameAttemptRepository? attemptRepository;
+  final AdaptiveDifficultyService? adaptiveService;
   final bool fastPreviewForTesting;
 
   const MemoryGridScreen({
     super.key,
     this.cubit,
-    this.initialDifficulty = const GameDifficulty(1),
+    this.initialDifficulty,
     this.initialSeed,
     this.attemptRepository,
+    this.adaptiveService,
     this.fastPreviewForTesting = false,
   });
 
@@ -45,6 +48,7 @@ class MemoryGridScreen extends StatelessWidget {
         initialDifficulty: initialDifficulty,
         initialSeed: initialSeed,
         attemptRepository: attemptRepository,
+        adaptiveService: adaptiveService,
         fastPreviewForTesting: fastPreviewForTesting,
       ),
       child: const _MemoryGridContent(),
@@ -148,8 +152,11 @@ class _MemoryGridContent extends StatelessWidget {
                   if (status.isTerminal) {
                     return MemoryGridResultView(
                       state: state,
-                      onPlayAgainPressed: () => cubit.restart(),
-                      onExitPressed: () => Navigator.of(context).maybePop(),
+                      onProceedToNextLevelPressed: () =>
+                          cubit.proceedToRecommendedLevel(),
+                      onPlayAgainPressed: () =>
+                          cubit.playAgainAtCompletedDifficulty(),
+                      onReturnToGamePressed: () => cubit.returnToReadyView(),
                     );
                   }
 

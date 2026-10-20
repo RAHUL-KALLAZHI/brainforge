@@ -1,4 +1,6 @@
 import 'package:equatable/equatable.dart';
+import '../../shared/domain/adaptation_action.dart';
+import '../../shared/domain/adaptation_decision.dart';
 import '../../shared/domain/game_config.dart';
 import '../../shared/domain/game_difficulty.dart';
 import '../../shared/domain/game_result.dart';
@@ -17,6 +19,7 @@ class MemoryGridState extends Equatable {
   final int? lastTappedTile;
   final bool? lastInputCorrect;
   final bool isExitDialogOpen;
+  final AdaptationDecision? adaptationDecision;
 
   const MemoryGridState({
     required this.config,
@@ -28,6 +31,7 @@ class MemoryGridState extends Equatable {
     this.lastTappedTile,
     this.lastInputCorrect,
     this.isExitDialogOpen = false,
+    this.adaptationDecision,
   });
 
   /// Factory creating the initial state for Memory Grid.
@@ -79,6 +83,24 @@ class MemoryGridState extends Equatable {
   /// Current difficulty level.
   GameDifficulty get difficulty => config.difficulty;
 
+  /// The difficulty level of the session that was actually played.
+  GameDifficulty get playedDifficulty =>
+      sessionState.result?.difficulty ?? config.difficulty;
+
+  /// The recommended difficulty from adaptation (or played difficulty if no adaptation).
+  GameDifficulty get recommendedDifficulty =>
+      adaptationDecision?.targetDifficulty ?? playedDifficulty;
+
+  /// Whether a valid promotion is available allowing progression to next level.
+  bool get canProceedToNextLevel =>
+      adaptationDecision != null &&
+      adaptationDecision!.action == AdaptationAction.promote &&
+      adaptationDecision!.targetDifficulty.level > playedDifficulty.level &&
+      playedDifficulty.level < GameDifficulty.maxLevel;
+
+  /// Number of consecutive qualifying wins achieved at the current played difficulty.
+  int get qualifyingWinsCount => adaptationDecision?.qualifyingWinsCount ?? 0;
+
   /// Completed result if session reached a terminal state.
   GameResult? get result => sessionState.result;
 
@@ -92,6 +114,7 @@ class MemoryGridState extends Equatable {
     int? Function()? lastTappedTile,
     bool? Function()? lastInputCorrect,
     bool? isExitDialogOpen,
+    AdaptationDecision? Function()? adaptationDecision,
   }) {
     return MemoryGridState(
       config: config ?? this.config,
@@ -107,6 +130,9 @@ class MemoryGridState extends Equatable {
       lastInputCorrect:
           lastInputCorrect != null ? lastInputCorrect() : this.lastInputCorrect,
       isExitDialogOpen: isExitDialogOpen ?? this.isExitDialogOpen,
+      adaptationDecision: adaptationDecision != null
+          ? adaptationDecision()
+          : this.adaptationDecision,
     );
   }
 
@@ -121,5 +147,6 @@ class MemoryGridState extends Equatable {
         lastTappedTile,
         lastInputCorrect,
         isExitDialogOpen,
+        adaptationDecision,
       ];
 }

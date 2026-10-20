@@ -53,8 +53,8 @@ class DriftGameAttemptRepository implements GameAttemptRepository {
       final query = _db.select(_db.gameAttempts)
         ..where((tbl) => tbl.gameId.equals(gameId))
         ..orderBy([
-          (tbl) =>
-              OrderingTerm(expression: tbl.completedAt, mode: OrderingMode.desc),
+          (tbl) => OrderingTerm(
+              expression: tbl.completedAt, mode: OrderingMode.desc),
           (tbl) => OrderingTerm(expression: tbl.id, mode: OrderingMode.desc),
         ])
         ..limit(limit);
@@ -77,8 +77,8 @@ class DriftGameAttemptRepository implements GameAttemptRepository {
         ..orderBy([
           (tbl) =>
               OrderingTerm(expression: tbl.finalScore, mode: OrderingMode.desc),
-          (tbl) =>
-              OrderingTerm(expression: tbl.completedAt, mode: OrderingMode.desc),
+          (tbl) => OrderingTerm(
+              expression: tbl.completedAt, mode: OrderingMode.desc),
           (tbl) => OrderingTerm(expression: tbl.id, mode: OrderingMode.desc),
         ])
         ..limit(1);
@@ -106,8 +106,8 @@ class DriftGameAttemptRepository implements GameAttemptRepository {
     try {
       final query = _db.select(_db.gameAttempts)
         ..orderBy([
-          (tbl) =>
-              OrderingTerm(expression: tbl.completedAt, mode: OrderingMode.desc),
+          (tbl) => OrderingTerm(
+              expression: tbl.completedAt, mode: OrderingMode.desc),
           (tbl) => OrderingTerm(expression: tbl.id, mode: OrderingMode.desc),
         ])
         ..limit(limit);
@@ -136,9 +136,7 @@ class DriftGameAttemptRepository implements GameAttemptRepository {
       ])
       ..limit(limit);
 
-    return query
-        .watch()
-        .map((rows) => rows.map(_mapEntryToDomain).toList());
+    return query.watch().map((rows) => rows.map(_mapEntryToDomain).toList());
   }
 
   /// Reactive stream of all attempts across all games.
@@ -151,9 +149,7 @@ class DriftGameAttemptRepository implements GameAttemptRepository {
       ])
       ..limit(limit);
 
-    return query
-        .watch()
-        .map((rows) => rows.map(_mapEntryToDomain).toList());
+    return query.watch().map((rows) => rows.map(_mapEntryToDomain).toList());
   }
 
   @override
@@ -161,7 +157,8 @@ class DriftGameAttemptRepository implements GameAttemptRepository {
     try {
       await _db.delete(_db.gameAttempts).go();
     } catch (e) {
-      throw GameAttemptRepositoryException('Failed to clear attempt history: $e', e);
+      throw GameAttemptRepositoryException(
+          'Failed to clear attempt history: $e', e);
     }
   }
 
@@ -169,7 +166,8 @@ class DriftGameAttemptRepository implements GameAttemptRepository {
 
   void _validateAttempt(GameAttempt attempt) {
     if (attempt.id.trim().isEmpty) {
-      throw ArgumentError.value(attempt.id, 'id', 'Attempt ID must not be empty');
+      throw ArgumentError.value(
+          attempt.id, 'id', 'Attempt ID must not be empty');
     }
     if (attempt.gameId.trim().isEmpty) {
       throw ArgumentError.value(

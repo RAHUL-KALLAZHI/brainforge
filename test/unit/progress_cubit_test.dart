@@ -51,7 +51,8 @@ void main() {
   }
 
   group('ProgressCubit Unit Tests', () {
-    test('initial state calculates empty stats when database has no records', () async {
+    test('initial state calculates empty stats when database has no records',
+        () async {
       await Future<void>.delayed(Duration.zero);
       expect(cubit.state, isA<ProgressLoaded>());
       final state = cubit.state as ProgressLoaded;

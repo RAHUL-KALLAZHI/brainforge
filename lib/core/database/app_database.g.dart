@@ -687,10 +687,352 @@ class GameAttemptsCompanion extends UpdateCompanion<GameAttemptEntry> {
   }
 }
 
+class $PlayerGameProfilesTable extends PlayerGameProfiles
+    with TableInfo<$PlayerGameProfilesTable, PlayerGameProfileEntry> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PlayerGameProfilesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _gameIdMeta = const VerificationMeta('gameId');
+  @override
+  late final GeneratedColumn<String> gameId = GeneratedColumn<String>(
+      'game_id', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 1, maxTextLength: 64),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _currentDifficultyMeta =
+      const VerificationMeta('currentDifficulty');
+  @override
+  late final GeneratedColumn<int> currentDifficulty = GeneratedColumn<int>(
+      'current_difficulty', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _lastActionMeta =
+      const VerificationMeta('lastAction');
+  @override
+  late final GeneratedColumn<String> lastAction = GeneratedColumn<String>(
+      'last_action', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 1, maxTextLength: 32),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _lastReasonMeta =
+      const VerificationMeta('lastReason');
+  @override
+  late final GeneratedColumn<String> lastReason = GeneratedColumn<String>(
+      'last_reason', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+      'updated_at', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [gameId, currentDifficulty, lastAction, lastReason, updatedAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'player_game_profiles';
+  @override
+  VerificationContext validateIntegrity(
+      Insertable<PlayerGameProfileEntry> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('game_id')) {
+      context.handle(_gameIdMeta,
+          gameId.isAcceptableOrUnknown(data['game_id']!, _gameIdMeta));
+    } else if (isInserting) {
+      context.missing(_gameIdMeta);
+    }
+    if (data.containsKey('current_difficulty')) {
+      context.handle(
+          _currentDifficultyMeta,
+          currentDifficulty.isAcceptableOrUnknown(
+              data['current_difficulty']!, _currentDifficultyMeta));
+    } else if (isInserting) {
+      context.missing(_currentDifficultyMeta);
+    }
+    if (data.containsKey('last_action')) {
+      context.handle(
+          _lastActionMeta,
+          lastAction.isAcceptableOrUnknown(
+              data['last_action']!, _lastActionMeta));
+    } else if (isInserting) {
+      context.missing(_lastActionMeta);
+    }
+    if (data.containsKey('last_reason')) {
+      context.handle(
+          _lastReasonMeta,
+          lastReason.isAcceptableOrUnknown(
+              data['last_reason']!, _lastReasonMeta));
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {gameId};
+  @override
+  PlayerGameProfileEntry map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PlayerGameProfileEntry(
+      gameId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}game_id'])!,
+      currentDifficulty: attachedDatabase.typeMapping.read(
+          DriftSqlType.int, data['${effectivePrefix}current_difficulty'])!,
+      lastAction: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}last_action'])!,
+      lastReason: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}last_reason']),
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
+    );
+  }
+
+  @override
+  $PlayerGameProfilesTable createAlias(String alias) {
+    return $PlayerGameProfilesTable(attachedDatabase, alias);
+  }
+}
+
+class PlayerGameProfileEntry extends DataClass
+    implements Insertable<PlayerGameProfileEntry> {
+  /// Unique identifier of the game (e.g., 'memory_grid').
+  final String gameId;
+
+  /// The player's current effective difficulty level (1 through 10).
+  final int currentDifficulty;
+
+  /// The most recent adaptation action applied (e.g. 'promote', 'demote', 'maintain').
+  final String lastAction;
+
+  /// Human-readable explainable rationale for the adaptation.
+  final String? lastReason;
+
+  /// Timestamp when this difficulty level was updated (stored in UTC).
+  final DateTime updatedAt;
+  const PlayerGameProfileEntry(
+      {required this.gameId,
+      required this.currentDifficulty,
+      required this.lastAction,
+      this.lastReason,
+      required this.updatedAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['game_id'] = Variable<String>(gameId);
+    map['current_difficulty'] = Variable<int>(currentDifficulty);
+    map['last_action'] = Variable<String>(lastAction);
+    if (!nullToAbsent || lastReason != null) {
+      map['last_reason'] = Variable<String>(lastReason);
+    }
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  PlayerGameProfilesCompanion toCompanion(bool nullToAbsent) {
+    return PlayerGameProfilesCompanion(
+      gameId: Value(gameId),
+      currentDifficulty: Value(currentDifficulty),
+      lastAction: Value(lastAction),
+      lastReason: lastReason == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastReason),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory PlayerGameProfileEntry.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PlayerGameProfileEntry(
+      gameId: serializer.fromJson<String>(json['gameId']),
+      currentDifficulty: serializer.fromJson<int>(json['currentDifficulty']),
+      lastAction: serializer.fromJson<String>(json['lastAction']),
+      lastReason: serializer.fromJson<String?>(json['lastReason']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'gameId': serializer.toJson<String>(gameId),
+      'currentDifficulty': serializer.toJson<int>(currentDifficulty),
+      'lastAction': serializer.toJson<String>(lastAction),
+      'lastReason': serializer.toJson<String?>(lastReason),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  PlayerGameProfileEntry copyWith(
+          {String? gameId,
+          int? currentDifficulty,
+          String? lastAction,
+          Value<String?> lastReason = const Value.absent(),
+          DateTime? updatedAt}) =>
+      PlayerGameProfileEntry(
+        gameId: gameId ?? this.gameId,
+        currentDifficulty: currentDifficulty ?? this.currentDifficulty,
+        lastAction: lastAction ?? this.lastAction,
+        lastReason: lastReason.present ? lastReason.value : this.lastReason,
+        updatedAt: updatedAt ?? this.updatedAt,
+      );
+  PlayerGameProfileEntry copyWithCompanion(PlayerGameProfilesCompanion data) {
+    return PlayerGameProfileEntry(
+      gameId: data.gameId.present ? data.gameId.value : this.gameId,
+      currentDifficulty: data.currentDifficulty.present
+          ? data.currentDifficulty.value
+          : this.currentDifficulty,
+      lastAction:
+          data.lastAction.present ? data.lastAction.value : this.lastAction,
+      lastReason:
+          data.lastReason.present ? data.lastReason.value : this.lastReason,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PlayerGameProfileEntry(')
+          ..write('gameId: $gameId, ')
+          ..write('currentDifficulty: $currentDifficulty, ')
+          ..write('lastAction: $lastAction, ')
+          ..write('lastReason: $lastReason, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(gameId, currentDifficulty, lastAction, lastReason, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PlayerGameProfileEntry &&
+          other.gameId == this.gameId &&
+          other.currentDifficulty == this.currentDifficulty &&
+          other.lastAction == this.lastAction &&
+          other.lastReason == this.lastReason &&
+          other.updatedAt == this.updatedAt);
+}
+
+class PlayerGameProfilesCompanion
+    extends UpdateCompanion<PlayerGameProfileEntry> {
+  final Value<String> gameId;
+  final Value<int> currentDifficulty;
+  final Value<String> lastAction;
+  final Value<String?> lastReason;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const PlayerGameProfilesCompanion({
+    this.gameId = const Value.absent(),
+    this.currentDifficulty = const Value.absent(),
+    this.lastAction = const Value.absent(),
+    this.lastReason = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  PlayerGameProfilesCompanion.insert({
+    required String gameId,
+    required int currentDifficulty,
+    required String lastAction,
+    this.lastReason = const Value.absent(),
+    required DateTime updatedAt,
+    this.rowid = const Value.absent(),
+  })  : gameId = Value(gameId),
+        currentDifficulty = Value(currentDifficulty),
+        lastAction = Value(lastAction),
+        updatedAt = Value(updatedAt);
+  static Insertable<PlayerGameProfileEntry> custom({
+    Expression<String>? gameId,
+    Expression<int>? currentDifficulty,
+    Expression<String>? lastAction,
+    Expression<String>? lastReason,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (gameId != null) 'game_id': gameId,
+      if (currentDifficulty != null) 'current_difficulty': currentDifficulty,
+      if (lastAction != null) 'last_action': lastAction,
+      if (lastReason != null) 'last_reason': lastReason,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  PlayerGameProfilesCompanion copyWith(
+      {Value<String>? gameId,
+      Value<int>? currentDifficulty,
+      Value<String>? lastAction,
+      Value<String?>? lastReason,
+      Value<DateTime>? updatedAt,
+      Value<int>? rowid}) {
+    return PlayerGameProfilesCompanion(
+      gameId: gameId ?? this.gameId,
+      currentDifficulty: currentDifficulty ?? this.currentDifficulty,
+      lastAction: lastAction ?? this.lastAction,
+      lastReason: lastReason ?? this.lastReason,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (gameId.present) {
+      map['game_id'] = Variable<String>(gameId.value);
+    }
+    if (currentDifficulty.present) {
+      map['current_difficulty'] = Variable<int>(currentDifficulty.value);
+    }
+    if (lastAction.present) {
+      map['last_action'] = Variable<String>(lastAction.value);
+    }
+    if (lastReason.present) {
+      map['last_reason'] = Variable<String>(lastReason.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PlayerGameProfilesCompanion(')
+          ..write('gameId: $gameId, ')
+          ..write('currentDifficulty: $currentDifficulty, ')
+          ..write('lastAction: $lastAction, ')
+          ..write('lastReason: $lastReason, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $GameAttemptsTable gameAttempts = $GameAttemptsTable(this);
+  late final $PlayerGameProfilesTable playerGameProfiles =
+      $PlayerGameProfilesTable(this);
   late final Index idxGameAttemptsGameCompleted = Index(
       'idx_game_attempts_game_completed',
       'CREATE INDEX idx_game_attempts_game_completed ON game_attempts (game_id, completed_at)');
@@ -706,6 +1048,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [
         gameAttempts,
+        playerGameProfiles,
         idxGameAttemptsGameCompleted,
         idxGameAttemptsGameScore,
         idxGameAttemptsCompleted
@@ -1016,10 +1359,196 @@ typedef $$GameAttemptsTableProcessedTableManager = ProcessedTableManager<
     ),
     GameAttemptEntry,
     PrefetchHooks Function()>;
+typedef $$PlayerGameProfilesTableCreateCompanionBuilder
+    = PlayerGameProfilesCompanion Function({
+  required String gameId,
+  required int currentDifficulty,
+  required String lastAction,
+  Value<String?> lastReason,
+  required DateTime updatedAt,
+  Value<int> rowid,
+});
+typedef $$PlayerGameProfilesTableUpdateCompanionBuilder
+    = PlayerGameProfilesCompanion Function({
+  Value<String> gameId,
+  Value<int> currentDifficulty,
+  Value<String> lastAction,
+  Value<String?> lastReason,
+  Value<DateTime> updatedAt,
+  Value<int> rowid,
+});
+
+class $$PlayerGameProfilesTableFilterComposer
+    extends Composer<_$AppDatabase, $PlayerGameProfilesTable> {
+  $$PlayerGameProfilesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get gameId => $composableBuilder(
+      column: $table.gameId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get currentDifficulty => $composableBuilder(
+      column: $table.currentDifficulty,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get lastAction => $composableBuilder(
+      column: $table.lastAction, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get lastReason => $composableBuilder(
+      column: $table.lastReason, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+}
+
+class $$PlayerGameProfilesTableOrderingComposer
+    extends Composer<_$AppDatabase, $PlayerGameProfilesTable> {
+  $$PlayerGameProfilesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get gameId => $composableBuilder(
+      column: $table.gameId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get currentDifficulty => $composableBuilder(
+      column: $table.currentDifficulty,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get lastAction => $composableBuilder(
+      column: $table.lastAction, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get lastReason => $composableBuilder(
+      column: $table.lastReason, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+}
+
+class $$PlayerGameProfilesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $PlayerGameProfilesTable> {
+  $$PlayerGameProfilesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get gameId =>
+      $composableBuilder(column: $table.gameId, builder: (column) => column);
+
+  GeneratedColumn<int> get currentDifficulty => $composableBuilder(
+      column: $table.currentDifficulty, builder: (column) => column);
+
+  GeneratedColumn<String> get lastAction => $composableBuilder(
+      column: $table.lastAction, builder: (column) => column);
+
+  GeneratedColumn<String> get lastReason => $composableBuilder(
+      column: $table.lastReason, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$PlayerGameProfilesTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $PlayerGameProfilesTable,
+    PlayerGameProfileEntry,
+    $$PlayerGameProfilesTableFilterComposer,
+    $$PlayerGameProfilesTableOrderingComposer,
+    $$PlayerGameProfilesTableAnnotationComposer,
+    $$PlayerGameProfilesTableCreateCompanionBuilder,
+    $$PlayerGameProfilesTableUpdateCompanionBuilder,
+    (
+      PlayerGameProfileEntry,
+      BaseReferences<_$AppDatabase, $PlayerGameProfilesTable,
+          PlayerGameProfileEntry>
+    ),
+    PlayerGameProfileEntry,
+    PrefetchHooks Function()> {
+  $$PlayerGameProfilesTableTableManager(
+      _$AppDatabase db, $PlayerGameProfilesTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PlayerGameProfilesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PlayerGameProfilesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$PlayerGameProfilesTableAnnotationComposer(
+                  $db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> gameId = const Value.absent(),
+            Value<int> currentDifficulty = const Value.absent(),
+            Value<String> lastAction = const Value.absent(),
+            Value<String?> lastReason = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              PlayerGameProfilesCompanion(
+            gameId: gameId,
+            currentDifficulty: currentDifficulty,
+            lastAction: lastAction,
+            lastReason: lastReason,
+            updatedAt: updatedAt,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String gameId,
+            required int currentDifficulty,
+            required String lastAction,
+            Value<String?> lastReason = const Value.absent(),
+            required DateTime updatedAt,
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              PlayerGameProfilesCompanion.insert(
+            gameId: gameId,
+            currentDifficulty: currentDifficulty,
+            lastAction: lastAction,
+            lastReason: lastReason,
+            updatedAt: updatedAt,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable<$PlayerGameProfilesTable,
+                        PlayerGameProfileEntry>(table),
+                    BaseReferences<_$AppDatabase, $PlayerGameProfilesTable,
+                        PlayerGameProfileEntry>(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$PlayerGameProfilesTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $PlayerGameProfilesTable,
+    PlayerGameProfileEntry,
+    $$PlayerGameProfilesTableFilterComposer,
+    $$PlayerGameProfilesTableOrderingComposer,
+    $$PlayerGameProfilesTableAnnotationComposer,
+    $$PlayerGameProfilesTableCreateCompanionBuilder,
+    $$PlayerGameProfilesTableUpdateCompanionBuilder,
+    (
+      PlayerGameProfileEntry,
+      BaseReferences<_$AppDatabase, $PlayerGameProfilesTable,
+          PlayerGameProfileEntry>
+    ),
+    PlayerGameProfileEntry,
+    PrefetchHooks Function()>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
   $AppDatabaseManager(this._db);
   $$GameAttemptsTableTableManager get gameAttempts =>
       $$GameAttemptsTableTableManager(_db, _db.gameAttempts);
+  $$PlayerGameProfilesTableTableManager get playerGameProfiles =>
+      $$PlayerGameProfilesTableTableManager(_db, _db.playerGameProfiles);
 }

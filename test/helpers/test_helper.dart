@@ -1,5 +1,7 @@
 import 'package:brainforge/core/database/app_database.dart';
 import 'package:brainforge/core/di/injection.dart';
+import 'package:brainforge/features/games/shared/data/adaptive_difficulty_repository.dart';
+import 'package:brainforge/features/games/shared/data/drift_adaptive_difficulty_repository.dart';
 import 'package:brainforge/features/games/shared/data/drift_game_attempt_repository.dart';
 import 'package:brainforge/features/games/shared/data/game_attempt_repository.dart';
 import 'package:drift/native.dart';
@@ -12,6 +14,7 @@ Future<void> initTestDependencies({
   Map<String, Object> initialValues = const {},
   AppDatabase? database,
   GameAttemptRepository? attemptRepository,
+  AdaptiveDifficultyRepository? difficultyRepository,
 }) async {
   await resetDependencies();
   SharedPreferences.setMockInitialValues(initialValues);
@@ -21,6 +24,8 @@ Future<void> initTestDependencies({
     preferences: prefs,
     database: db,
     attemptRepository: attemptRepository ?? DriftGameAttemptRepository(db),
+    difficultyRepository:
+        difficultyRepository ?? DriftAdaptiveDifficultyRepository(db),
   );
 }
 

@@ -40,24 +40,31 @@ The test directory is structured as follows:
 test/
 ├── helpers/
 │   ├── fake_shared_preferences.dart
-│   └── test_app_wrapper.dart
+│   └── test_helper.dart
 ├── unit/
-│   ├── challenge_generator_test.dart     # Seed reproducibility, sequence pools, configs
-│   ├── game_attempt_repository_test.dart # In-memory storage, median response times, bests
-│   ├── game_config_test.dart             # Constraint validation, boundary checks, copyWith
-│   ├── game_difficulty_test.dart         # Clamping (1-10), progression, tier naming
-│   ├── game_state_machine_test.dart      # Valid/invalid transitions, gating, timeouts, idempotency
-│   ├── game_timer_test.dart              # Synchronous stepping, pause/resume, countdowns
-│   ├── memory_grid_cubit_test.dart       # Preview pacing, input gating, timeout, pause/resume, attempt saves
-│   ├── memory_grid_engine_test.dart      # Presets, deterministic sequence generation, constraint checks
-│   ├── scoring_service_test.dart         # Formula, speed protection, completion scaling
-│   ├── settings_cubit_test.dart          # Theme, audio, and haptic persistence
-│   └── theme_test.dart                   # Light/dark palette tokens, contrast, extensions
+│   ├── adaptive_difficulty_policy_test.dart         # Pure-Dart promotion, demotion, maintain, threshold boundaries, NaN safety
+│   ├── adaptive_difficulty_service_test.dart        # Coordination, write-minimization, profile updates
+│   ├── challenge_generator_test.dart                # Seed reproducibility, sequence pools, configs
+│   ├── drift_adaptive_difficulty_repository_test.dart# SQLite CRUD, schema v1->v2 migration, data preservation
+│   ├── drift_game_attempt_repository_test.dart      # Persistent SQLite attempt storage, aggregation queries
+│   ├── game_attempt_repository_test.dart            # In-memory storage, median response times, bests
+│   ├── game_config_test.dart                        # Constraint validation, boundary checks, copyWith
+│   ├── game_difficulty_test.dart                    # Clamping (1-10), progression, tier naming
+│   ├── game_state_machine_test.dart                 # Valid/invalid transitions, gating, timeouts, idempotency
+│   ├── game_timer_test.dart                         # Synchronous stepping, pause/resume, countdowns
+│   ├── memory_grid_adaptive_integration_test.dart   # Memory Grid + Adaptive service integration, persistence, restart adoption
+│   ├── memory_grid_cubit_test.dart                  # Preview pacing, input gating, timeout, pause/resume, attempt saves
+│   ├── memory_grid_engine_test.dart                 # Presets, deterministic sequence generation, constraint checks
+│   ├── progress_cubit_test.dart                     # Analytics computation, accuracy, median latency, streak calculations
+│   ├── scoring_service_test.dart                    # Formula, speed protection, completion scaling
+│   ├── settings_cubit_test.dart                     # Theme, audio, and haptic persistence
+│   └── theme_test.dart                              # Light/dark palette tokens, contrast, extensions
 └── widget/
-    ├── app_startup_test.dart             # App launch, theme hydration, shell rendering
-    ├── memory_grid_widget_test.dart      # Catalog launch, 3x3 board, inputs, results, exit dialog, narrow screens
-    ├── navigation_test.dart              # 5-tab switching, bottom sheet, 404 fallback
-    └── theme_switch_test.dart            # In-app settings toggle reaction
+    ├── app_startup_test.dart                        # App launch, theme hydration, shell rendering
+    ├── memory_grid_widget_test.dart                 # Catalog launch, 3x3 board, inputs, results, exit dialog, adaptive banners, narrow screens
+    ├── navigation_test.dart                         # 5-tab switching, bottom sheet, 404 fallback
+    ├── progress_dashboard_widget_test.dart          # Hero card, metrics cards, empty state, data clearing
+    └── theme_switch_test.dart                       # In-app settings toggle reaction
 ```
 
 ---
@@ -68,7 +75,7 @@ test/
 ```bash
 fvm flutter test
 ```
-*Current Status:* **88 / 88 tests passing** (100% pass rate across 12 test suites).
+*Current Status:* **142 / 142 tests passing** (100% pass rate across 22 test suites).
 
 ### Running Static Analysis
 ```bash

@@ -137,11 +137,23 @@ class MemoryGridReadyView extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
-                    child: Text(
-                      'Difficulty Level',
-                      style: AppTypography.titleMedium.copyWith(
-                        color: theme.colorScheme.onSurface,
-                      ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Difficulty Level',
+                          style: AppTypography.titleMedium.copyWith(
+                            color: theme.colorScheme.onSurface,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Adapts to recent performance',
+                          style: AppTypography.labelSmall.copyWith(
+                            color: customTheme.textMuted,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   Row(

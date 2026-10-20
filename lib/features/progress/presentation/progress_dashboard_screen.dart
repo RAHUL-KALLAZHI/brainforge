@@ -212,6 +212,16 @@ class _ProgressDashboardView extends StatelessWidget {
               color: customTheme.textMuted,
             ),
           ),
+          if (stats.memoryGridDifficulty != null) ...[
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              'Recommended Difficulty: Level ${stats.memoryGridDifficulty!.level} (${stats.memoryGridDifficulty!.tierName})',
+              style: AppTypography.bodySmall.copyWith(
+                color: customTheme.accentCyan,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
           if (stats.bestScore != null) ...[
             const SizedBox(height: AppSpacing.xs),
             Text(
@@ -332,9 +342,8 @@ class _ProgressDashboardView extends StatelessWidget {
               ? AppChipColor.success
               : (isFailed ? AppChipColor.amber : AppChipColor.defaultColor);
 
-          final statusLabel = isCompleted
-              ? 'Completed'
-              : (isFailed ? 'Failed' : 'Abandoned');
+          final statusLabel =
+              isCompleted ? 'Completed' : (isFailed ? 'Failed' : 'Abandoned');
 
           return Padding(
             padding: const EdgeInsets.only(bottom: AppSpacing.sm),

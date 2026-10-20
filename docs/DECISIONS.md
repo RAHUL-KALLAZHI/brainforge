@@ -157,3 +157,49 @@ Upgrade the Android build configuration:
 - Clean, error-free Android debug APK compilation.
 - Complete compatibility with modern Android 14/15 SDKs and plugins (`shared_preferences_android`).
 
+---
+
+## ADR 011: Pure-Dart Deterministic Adaptive Difficulty Policy with Rolling Window
+
+### Context
+Memory Grid and future mini-games must dynamically and gradually adjust their starting challenge level based on verified gameplay performance. The adaptation must avoid erratic single-game fluctuations, protect against accidental exits, maintain deterministic reproducibility, and keep skill assessment strictly decoupled from scoring formulas.
+
+### Decision
+Implement `AdaptiveDifficultyPolicy` as an isolated pure-Dart service:
+- **Rolling Window:** Evaluates the last 5 attempts, requiring a minimum of 3 eligible attempts before adapting.
+- **Eligibility:** Strictly `completed` and `failed` attempts count as evidence. `abandoned` attempts are excluded to prevent skewed metrics.
+- **Promotion:** $\ge 3$ eligible attempts, $\ge 90\%$ average accuracy, all attempts completed successfully (no failures/timeouts), and current level $< 10 \implies \text{Level} + 1$.
+- **Demotion:** $\ge 3$ eligible attempts, $< 60\%$ average accuracy OR $\ge 2$ consecutive terminal failures, and current level $> 1 \implies \text{Level} - 1$.
+- **Boundary Clamping:** Difficulty is clamped between 1 (Beginner) and 10 (Master). Maximum 1 level adjustment per evaluation.
+- **Zero Scoring Interference:** Scoring weights (70% accuracy, 20% efficiency, 10% completion) and historical records remain untouched.
+
+### Consequences
+- Completely testable in microseconds without database or Flutter dependencies.
+- Explainable adaptation rationales displayed to users on the result screen.
+- Independent per-game profiles ensure progress in Memory Grid does not alter other games.
+
+---
+
+## ADR 012: Drift SQLite Schema Version 2 Migration & Profile Persistence
+
+### Context
+The player's adaptive difficulty level must persist across application restarts. The database must serve as the single source of truth without duplicating state into `shared_preferences`. Adding this persistence must preserve all existing game attempt records from Phase 4.
+
+### Decision
+- Create `PlayerGameProfiles` Drift SQLite table with primary key `game_id`, `current_difficulty` integer, `last_action` text, `last_reason` text, and `updated_at` datetime.
+- Bump database `schemaVersion` to 2.
+- Implement Drift `MigrationStrategy` in `AppDatabase`:
+  ```dart
+  onUpgrade: (m, from, to) async {
+    if (from < 2) {
+      await m.createTable(playerGameProfiles);
+    }
+  }
+  ```
+- Implement `AdaptiveDifficultyService` write-minimization: updates are written to the database strictly when `hasDifficultyChanged` is true, avoiding redundant disk writes when difficulty is maintained.
+
+### Consequences
+- Single local source of truth for game difficulty.
+- Seamless, automated schema upgrade for existing installations without data loss.
+- High database write efficiency and battery preservation.
+

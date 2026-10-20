@@ -57,6 +57,39 @@ class GameAttempt extends Equatable {
     );
   }
 
+  /// Creates a copy of this [GameAttempt] with updated fields.
+  GameAttempt copyWith({
+    String? id,
+    String? gameId,
+    int? difficultyLevel,
+    GameStatus? status,
+    int? finalScore,
+    double? accuracy,
+    int? correctCount,
+    int? incorrectCount,
+    int? missedCount,
+    List<int>? responseTimesMs,
+    DateTime? startedAt,
+    DateTime? completedAt,
+    int? seed,
+  }) {
+    return GameAttempt(
+      id: id ?? this.id,
+      gameId: gameId ?? this.gameId,
+      difficultyLevel: difficultyLevel ?? this.difficultyLevel,
+      status: status ?? this.status,
+      finalScore: finalScore ?? this.finalScore,
+      accuracy: accuracy ?? this.accuracy,
+      correctCount: correctCount ?? this.correctCount,
+      incorrectCount: incorrectCount ?? this.incorrectCount,
+      missedCount: missedCount ?? this.missedCount,
+      responseTimesMs: responseTimesMs ?? this.responseTimesMs,
+      startedAt: startedAt ?? this.startedAt,
+      completedAt: completedAt ?? this.completedAt,
+      seed: seed ?? this.seed,
+    );
+  }
+
   /// Median response time in milliseconds, or null if no attempts recorded.
   int? get medianResponseTimeMs {
     if (responseTimesMs.isEmpty) return null;

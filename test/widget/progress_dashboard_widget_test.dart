@@ -38,7 +38,8 @@ void main() {
     );
   }
 
-  testWidgets('renders empty state when no attempts exist in SQLite', (tester) async {
+  testWidgets('renders empty state when no attempts exist in SQLite',
+      (tester) async {
     await tester.pumpWidget(buildDashboard());
     await tester.pumpAndSettle();
 
@@ -50,7 +51,9 @@ void main() {
     expect(find.text('0 Days'), findsOneWidget);
   });
 
-  testWidgets('renders live persisted metrics when attempts are saved in SQLite', (tester) async {
+  testWidgets(
+      'renders live persisted metrics when attempts are saved in SQLite',
+      (tester) async {
     final now = DateTime.now();
     await repository.saveAttempt(
       GameAttempt(
@@ -85,7 +88,8 @@ void main() {
     expect(find.text('Completed'), findsOneWidget);
   });
 
-  testWidgets('clearing repository resets dashboard to empty state', (tester) async {
+  testWidgets('clearing repository resets dashboard to empty state',
+      (tester) async {
     final now = DateTime.now();
     await repository.saveAttempt(
       GameAttempt(

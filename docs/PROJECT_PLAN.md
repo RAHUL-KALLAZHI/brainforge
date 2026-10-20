@@ -89,24 +89,30 @@
 - [x] Exit confirmation modal during active play to prevent accidental score loss or abandoned sessions.
 - [x] 100% test coverage across engine, Cubit, and presentation widgets: 88 total automated tests passing (20 new tests in Phase 3), 0 analyzer issues, Android debug build verified.
 
-### Phase 4: Local Database and Progress Persistence
-- [ ] Integrate chosen database engine (Drift SQLite) and lightweight storage (`shared_preferences`).
-- [ ] Define schemas: `GameAttemptsTable`, `DailyWorkoutsTable`, `PlayerStatsTable`, `DifficultyHistoryTable`, `AchievementsTable`.
-- [ ] Implement clean repository layer with clear abstraction: `GameRepository`, `UserRepository`, `SettingsRepository`.
-- [ ] Write database migrations framework and automated migration tests.
-- [ ] Implement aggregation queries: accuracy by game, median response time, streak computations.
-- [ ] Provide data wipe/export features for user privacy compliance.
+### Phase 4: Local Database and Progress Persistence (Complete)
+- [x] Integrate chosen database engine (Drift SQLite via `drift` & `drift_flutter`) and lightweight storage (`shared_preferences`).
+- [x] Define schema: `GameAttemptsTable` with indexing on `(game_id, completed_at)` and robust converters for integer list latencies.
+- [x] Implement clean repository layer with clear abstraction: `GameAttemptRepository`, `SettingsRepository`, `DriftGameAttemptRepository`.
+- [x] Write database unit tests and schema verification.
+- [x] Implement aggregation queries: accuracy by game, median response time, calendar day streak computations.
+- [x] Deliver initial Progress Dashboard screen with Hero overview, reactive state management via `ProgressCubit`, and empty state handling.
+- [x] 107 automated tests passing, 0 analyzer issues, physical device verification.
 
-### Phase 5: Adaptive Difficulty Engine
-- [ ] Build `AdaptiveEngine` with domain models: `DifficultyProfile`, `DifficultyParameters`, `EvaluationResult`.
-- [ ] Implement independent game tracking (Game A memory difficulty does not alter Game C attention difficulty).
-- [ ] Rule engine:
-  - Promote (+1 step): $\ge 5$ recent attempts with $\ge 90\%$ average accuracy.
-  - Maintain: $70\% - 89\%$ average accuracy.
-  - Demote (-1 step): $\ge 3$ recent attempts with $< 70\%$ average accuracy.
-  - Clamp between Min and Max level boundaries.
-- [ ] Ensure full audit trail: explainable reason strings stored with every level adjustment.
-- [ ] Unit tests for cold start, streak promotions, boundary clamps, and noisy erratic scores.
+### Phase 5: Adaptive Difficulty Engine (Complete)
+- [x] Build pure-Dart deterministic adaptation policy (`AdaptiveDifficultyPolicy`) and domain models (`AdaptationAction`, `AdaptationDecision`, `AdaptivePolicyConfig`, `PlayerGameProfile`).
+- [x] Implement per-game isolation (Memory Grid difficulty tracked independently in database).
+- [x] Deterministic rule engine:
+  - Rolling window of last 5 attempts, requiring minimum 3 eligible attempts.
+  - Promote (+1 step): $\ge 3$ eligible attempts with $\ge 90\%$ average accuracy, all completed (no failures/timeouts).
+  - Demote (-1 step): $\ge 3$ eligible attempts with $< 60\%$ average accuracy or $\ge 2$ consecutive failures.
+  - Maintain: intermediate performance, insufficient history (<3), or boundary limits.
+  - Clamp between Min (1) and Max (10) boundaries; maximum 1-level adjustment per decision.
+- [x] Ensure explainable reason strings stored with every level adjustment.
+- [x] Drift SQLite database schema migration from version 1 to 2 (`PlayerGameProfilesTable`), preserving existing game records.
+- [x] Write-minimizing `AdaptiveDifficultyService` (database updates occur strictly when effective level changes).
+- [x] Memory Grid end-to-end integration: loads effective difficulty on startup, adapts only after successful attempt save, displays promote/demote banners, adopts adapted level on Play Again.
+- [x] Progress Dashboard displays recommended Memory Grid difficulty.
+- [x] 142 automated tests passing, 0 analyzer issues, Android debug build verified.
 
 ### Phase 6: Additional Game Modes
 - [ ] **Game C: Focus Hunter** (Target identification among visually similar distractors).

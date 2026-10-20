@@ -1,10 +1,13 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:brainforge/core/di/injection.dart';
 import 'package:brainforge/features/games/shared/data/game_attempt_repository.dart';
 import 'package:brainforge/features/games/shared/domain/game_attempt.dart';
 import 'package:brainforge/features/games/shared/domain/game_difficulty.dart';
+import 'package:brainforge/features/games/shared/domain/game_session_state.dart';
 import 'package:brainforge/features/games/shared/domain/game_status.dart';
+import 'package:brainforge/features/games/shared/logic/adaptive_difficulty_service.dart';
 import 'package:brainforge/features/games/shared/logic/game_state_machine.dart';
 import 'package:brainforge/features/games/shared/logic/game_timer.dart';
 import '../domain/memory_grid_config.dart';
@@ -15,8 +18,10 @@ import 'memory_grid_state.dart';
 class MemoryGridCubit extends Cubit<MemoryGridState> {
   final MemoryGridEngine _engine;
   final GameAttemptRepository _attemptRepository;
+  final AdaptiveDifficultyService? _adaptiveService;
   final GameTimer _timer;
   final bool _fastPreviewForTesting;
+  final int? _initialSeed;
 
   late GameStateMachine _stateMachine;
   int _currentSessionId = 0;
@@ -27,22 +32,61 @@ class MemoryGridCubit extends Cubit<MemoryGridState> {
   MemoryGridCubit({
     MemoryGridEngine engine = const MemoryGridEngine(),
     GameAttemptRepository? attemptRepository,
+    AdaptiveDifficultyService? adaptiveService,
     GameTimer? timer,
-    GameDifficulty initialDifficulty = const GameDifficulty(1),
+    GameDifficulty? initialDifficulty,
     int? initialSeed,
     bool fastPreviewForTesting = false,
   })  : _engine = engine,
         _attemptRepository =
             attemptRepository ?? getIt<GameAttemptRepository>(),
+        _adaptiveService = adaptiveService ??
+            (getIt.isRegistered<AdaptiveDifficultyService>()
+                ? getIt<AdaptiveDifficultyService>()
+                : null),
         _timer = timer ?? GameTimer(),
+        _initialSeed = initialSeed,
         _fastPreviewForTesting = fastPreviewForTesting,
         super(_createInitialState(
           engine: engine,
           timer: timer ?? GameTimer(),
-          difficulty: initialDifficulty,
+          difficulty: initialDifficulty ?? const GameDifficulty(1),
           seed: initialSeed,
         )) {
     _initStateMachine();
+    if (initialDifficulty == null) {
+      _loadAdaptiveDifficulty();
+    }
+  }
+
+  /// Asynchronously hydrates the effective adaptive difficulty if not explicitly overridden.
+  Future<void> _loadAdaptiveDifficulty() async {
+    if (_adaptiveService == null) return;
+    try {
+      final effectiveDifficulty =
+          await _adaptiveService.getEffectiveDifficulty('memory_grid');
+      debugPrint(
+        '[MemoryGrid] HydrateDifficulty: loaded=L${effectiveDifficulty.level}, current=L${state.difficulty.level}',
+      );
+      if (!isClosed &&
+          state.sessionState.status == GameStatus.initial &&
+          effectiveDifficulty.level != state.difficulty.level) {
+        final newConfig = MemoryGridConfig.forDifficulty(
+          effectiveDifficulty,
+          seed: _initialSeed,
+        );
+        final newChallenge = _engine.generateGridChallenge(config: newConfig);
+
+        _stateMachine.restart(newConfig);
+        emit(MemoryGridState.initial(
+          config: newConfig,
+          challenge: newChallenge,
+          sessionState: _stateMachine.state,
+        ));
+      }
+    } catch (e) {
+      debugPrint('[MemoryGrid] HydrateDifficulty failed: $e');
+    }
   }
 
   static MemoryGridState _createInitialState({
@@ -271,31 +315,123 @@ class MemoryGridCubit extends Cubit<MemoryGridState> {
     emit(state.copyWith(isExitDialogOpen: isVisible));
   }
 
+  /// Begins a new game session immediately using the difficulty of the game that just completed.
+  void playAgainAtCompletedDifficulty({int? seed}) {
+    if (!state.isTerminal) return;
+    final replayDifficulty = state.playedDifficulty;
+    debugPrint(
+      '[MemoryGrid] PlayAgainAtCompletedDifficulty: replaying L${replayDifficulty.level}',
+    );
+    restart(
+      difficulty: replayDifficulty,
+      seed: seed,
+      startImmediately: true,
+    );
+  }
+
+  /// Begins a new game session immediately using the difficulty of the game that just completed.
+  void playAgain({int? seed}) => playAgainAtCompletedDifficulty(seed: seed);
+
+  /// Begins a new game session immediately using the recommended promoted difficulty.
+  void proceedToRecommendedLevel({int? seed}) {
+    if (!state.isTerminal || !state.canProceedToNextLevel) {
+      debugPrint(
+        '[MemoryGrid] proceedToRecommendedLevel ignored: terminal=${state.isTerminal}, canProceed=${state.canProceedToNextLevel}',
+      );
+      return;
+    }
+    final targetDifficulty = state.recommendedDifficulty;
+    debugPrint(
+      '[MemoryGrid] ProceedToRecommendedLevel: launching L${targetDifficulty.level}',
+    );
+    restart(
+      difficulty: targetDifficulty,
+      seed: seed,
+      startImmediately: true,
+    );
+  }
+
+  /// Begins a new game session immediately using the recommended promoted difficulty.
+  void proceedToNextLevel({int? seed}) => proceedToRecommendedLevel(seed: seed);
+
+  /// Returns to the Memory Grid ready/setup screen using the current recommended difficulty.
+  void returnToReadyView({int? seed}) {
+    if (!state.isTerminal) return;
+    final targetDifficulty = state.recommendedDifficulty;
+    debugPrint(
+      '[MemoryGrid] ReturnToReadyView: opening ready view at recommended L${targetDifficulty.level}',
+    );
+    restart(
+      difficulty: targetDifficulty,
+      seed: seed,
+      startImmediately: false,
+    );
+  }
+
   /// Restarts the game session with current or updated difficulty/seed.
-  void restart({GameDifficulty? difficulty, int? seed}) {
+  void restart({
+    GameDifficulty? difficulty,
+    int? seed,
+    bool startImmediately = false,
+  }) {
     ++_currentSessionId;
     _attemptSaved = false;
 
+    // Use explicitly requested difficulty, or current difficulty.
     final targetDifficulty = difficulty ?? state.config.difficulty;
-    final newConfig =
-        MemoryGridConfig.forDifficulty(targetDifficulty, seed: seed);
+    debugPrint(
+      '[MemoryGrid] Restart: targetDifficulty=L${targetDifficulty.level} (from ${difficulty != null ? "explicit" : "config"}), startImmediately=$startImmediately',
+    );
+
+    final newConfig = MemoryGridConfig.forDifficulty(
+      targetDifficulty,
+      seed: seed ?? _initialSeed,
+    );
     final newChallenge = _engine.generateGridChallenge(config: newConfig);
+
+    emit(MemoryGridState(
+      config: newConfig,
+      challenge: newChallenge,
+      sessionState: GameSessionState.initial(newConfig),
+      activePreviewTileIndex: null,
+      currentStepIndex: 0,
+      playerSelections: const [],
+      lastTappedTile: null,
+      lastInputCorrect: null,
+      isExitDialogOpen: false,
+      adaptationDecision: null,
+    ));
 
     _stateMachine.restart(newConfig);
 
-    emit(MemoryGridState.initial(
-      config: newConfig,
-      challenge: newChallenge,
-      sessionState: _stateMachine.state,
-    ));
+    if (startImmediately) {
+      startGame(
+        countdownSeconds: _fastPreviewForTesting ? 1 : 3,
+        interval:
+            _fastPreviewForTesting ? Duration.zero : const Duration(seconds: 1),
+      );
+    }
   }
 
   Future<void> _saveAttempt() async {
     if (_attemptSaved) return;
     _attemptSaved = true;
+    final sessionId = _currentSessionId;
 
     final result = _stateMachine.state.result;
     if (result == null) return;
+
+    final totalResponses = result.score.correctCount +
+        result.score.incorrectCount +
+        result.score.missedCount;
+    debugPrint(
+      '[MemoryGrid] Result: status=${result.status.name}, '
+      'difficulty=L${result.difficulty.level}, '
+      'correct=${result.score.correctCount}, '
+      'total=$totalResponses, '
+      'accuracy=${(result.score.accuracy * 100).toStringAsFixed(1)}%, '
+      'score=${result.score.scaledScore}',
+    );
 
     final attempt = GameAttempt.fromResult(
       id: 'mg_${DateTime.now().millisecondsSinceEpoch}_${state.config.seed ?? 0}',
@@ -303,10 +439,41 @@ class MemoryGridCubit extends Cubit<MemoryGridState> {
       responseTimesMs: _stateMachine.state.responseTimesMs,
     );
 
+    bool saveSucceeded = false;
     try {
       await _attemptRepository.saveAttempt(attempt);
-    } catch (_) {
-      // Repository failures are handled gracefully without interrupting user flow
+      saveSucceeded = true;
+      debugPrint(
+        '[MemoryGrid] Persistence: id=${attempt.id}, gameId=${attempt.gameId}, status=${attempt.status.name}, saved=true',
+      );
+    } catch (e) {
+      debugPrint(
+        '[MemoryGrid] Persistence FAILED for attempt ${attempt.id}: $e',
+      );
+    }
+
+    // Only evaluate adaptation if save succeeded and session was not abandoned
+    if (saveSucceeded &&
+        _adaptiveService != null &&
+        result.status != GameStatus.abandoned) {
+      try {
+        final decision = await _adaptiveService.evaluateAndPersist(
+          gameId: 'memory_grid',
+          currentDifficulty: state.difficulty,
+        );
+        debugPrint(
+          '[MemoryGrid] StateUpdate: decision=${decision.action.name}, '
+          'target=L${decision.targetDifficulty.level}, '
+          'current=L${state.difficulty.level}',
+        );
+        if (!isClosed && _currentSessionId == sessionId) {
+          emit(state.copyWith(
+            adaptationDecision: () => decision,
+          ));
+        }
+      } catch (e) {
+        debugPrint('[MemoryGrid] Adaptive evaluation FAILED: $e');
+      }
     }
   }
 

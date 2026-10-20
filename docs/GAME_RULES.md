@@ -149,3 +149,32 @@ Memory Grid tests visual working memory, spatial encoding, and sequential recall
 | **Level 9** | Master | $5 \times 5$ | 25 | 9 | 750ms | 15s |
 | **Level 10** | Master | $5 \times 5$ | 25 | 10 | 750ms | 15s |
 
+---
+
+## 7. Adaptive Difficulty System (Phase 5)
+
+The adaptive difficulty system continuously tracks player performance and adjusts the effective starting challenge level to provide an optimal cognitive training zone (preventing boredom at low levels and excessive frustration at high levels).
+
+### 7.1 Decision Window & Eligible Attempts
+- **Rolling Window Size:** Last 5 attempts (`windowSize = 5`).
+- **Minimum Required History:** At least 3 eligible attempts (`minRequiredAttempts = 3`) are required before any adjustment can be made.
+- **Eligible Statuses:** Only `GameStatus.completed` and `GameStatus.failed` attempts count as valid performance evidence.
+- **Excluded Statuses:** `GameStatus.abandoned` sessions are excluded from performance calculations to ensure incomplete attempts or accidental exits do not distort skill assessments.
+
+### 7.2 Decision Rules & Thresholds
+
+| Action | Conditions | Target Effect |
+| :--- | :--- | :--- |
+| **Promote** | $\ge 3$ eligible attempts, **$\ge 90\%$ average accuracy**, all attempts successfully completed (`status == completed`), and $\text{Level} < 10$. | $\text{Level} + 1$ (Gradual 1-step increase) |
+| **Demote** | $\ge 3$ eligible attempts, **$< 60\%$ average accuracy** OR **$\ge 2$ consecutive failures**, and $\text{Level} > 1$. | $\text{Level} - 1$ (Gradual 1-step decrease) |
+| **Maintain** | Performance between 60% and 89%, isolated single failure with adequate accuracy, or level boundaries reached (clamped at 1 and 10). | $\text{Level}$ remains unchanged |
+| **Insufficient Data** | Fewer than 3 eligible attempts recorded in history. | $\text{Level}$ remains unchanged (initial baseline Level 1) |
+
+### 7.3 Boundary & Safety Invariants
+- **Strict Clamping:** Difficulty is bounded strictly between Level 1 (Beginner) and Level 10 (Master). Players at Level 10 cannot be promoted; players at Level 1 cannot be demoted.
+- **Gradual Adjustment:** A single evaluation decision can adjust difficulty by at most 1 level. Difficulty never jumps multiple levels in a single game.
+- **Idempotency & Replay Safety:** Identical inputs yield identical decisions. Re-evaluating after a completed attempt does not trigger duplicate adjustments.
+- **Write Minimization:** Persistent profile database writes occur strictly when the effective difficulty level actually changes.
+- **Decoupled Scoring:** Historical scores, earned points, and leaderboards remain untouched. Skill assessment governs only future session challenge generation.
+- **Independent Game Profiles:** Adaptive progression in Memory Grid does not alter difficulty in any other game mode.
+

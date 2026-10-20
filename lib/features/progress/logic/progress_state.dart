@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import '../../games/shared/domain/game_attempt.dart';
+import '../../games/shared/domain/game_difficulty.dart';
 
 /// Aggregated gameplay performance statistics.
 class ProgressStats extends Equatable {
@@ -14,6 +15,7 @@ class ProgressStats extends Equatable {
   final int currentStreakDays;
   final int completedWorkouts;
   final List<GameAttempt> recentAttempts;
+  final GameDifficulty? memoryGridDifficulty;
 
   const ProgressStats({
     this.totalAttempts = 0,
@@ -27,6 +29,7 @@ class ProgressStats extends Equatable {
     this.currentStreakDays = 0,
     this.completedWorkouts = 0,
     this.recentAttempts = const [],
+    this.memoryGridDifficulty,
   });
 
   bool get hasData => totalAttempts > 0;
@@ -44,6 +47,7 @@ class ProgressStats extends Equatable {
         currentStreakDays,
         completedWorkouts,
         recentAttempts,
+        memoryGridDifficulty,
       ];
 }
 

@@ -130,16 +130,37 @@ $$\text{Score} = \text{round}\Big(1000 \times (0.70 \times \text{Accuracy} + 0.2
 - **Speed-Gaming Guard:** $\text{Efficiency}_{\text{effective}} = \text{Raw Efficiency} \times \text{Accuracy}$. Rapid incorrect guessing cannot inflate the score.
 - Abandoned sessions always yield an overall score of 0.
 
-### 3.3. Adaptive Difficulty Engine
-Each of the 6 games maintains an isolated difficulty tracker:
-- **Inputs:** Recent history buffer of attempts ($N \ge 5$).
-- **Signals:** Average accuracy %, average response latency, completion rate.
-- **Rules:**
-  - Promotion: $\ge 5$ attempts with $\ge 90\%$ accuracy $\implies \text{Level} + 1$.
-  - Retention: $70\% - 89\%$ accuracy $\implies \text{Level unchanged}$.
-  - Demotion: $\ge 3$ attempts with $< 70\%$ accuracy $\implies \text{Level} - 1$.
-  - Clamping: Minimum Level 1, Maximum Level 10.
-- **Explainability:** Returns an immutable `DifficultyEvaluation` object with textual reasoning (e.g., `"Promoted to Level 4: 5 consecutive attempts averaged 94% accuracy"`).
+### 3.3. Adaptive Difficulty System (Phase 5)
+BrainForge adjusts game difficulty dynamically, gradually, and deterministically based on verified player performance.
+
+#### Pure-Dart Architecture (`lib/features/games/shared/`):
+- **Domain Models (`domain/`)**:
+  - `AdaptationAction`: Enum with outcomes: `promote`, `demote`, `maintain`, `insufficientData`.
+  - `AdaptationDecision`: Immutable, Equatable result containing `action`, `previousDifficulty`, `targetDifficulty`, `hasDifficultyChanged`, `accuracy`, `eligibleAttemptsEvaluated`, and human-readable `reason`.
+  - `AdaptivePolicyConfig`: Immutable configuration model with defaults: `windowSize = 5`, `minRequiredAttempts = 3`, `promotionAccuracyThreshold = 0.90`, `demotionAccuracyThreshold = 0.60`, `consecutiveFailuresToDemote = 2`.
+  - `PlayerGameProfile`: Immutable entity storing `gameId`, `currentDifficulty`, `lastAction`, `lastReason`, and `updatedAt`.
+- **Policy (`logic/adaptive_difficulty_policy.dart`)**:
+  - Pure-Dart deterministic evaluation function.
+  - Takes `currentDifficulty` and recent `GameAttempt` history.
+  - Filters eligible attempts: strictly `completed` and `failed` attempts (excluding `abandoned` attempts).
+  - Chronological sorting: ensures consistent deterministic evaluation regardless of input collection order.
+  - Decision rules:
+    - **Insufficient History:** Fewer than `minRequiredAttempts` (3) returns `insufficientData` and maintains difficulty.
+    - **Promotion:** $\ge 3$ eligible attempts, $\ge 90\%$ average accuracy, all attempts successfully completed (no failures/timeouts), and current level $< 10 \implies \text{Level} + 1$.
+    - **Demotion:** $\ge 3$ eligible attempts with $< 60\%$ average accuracy OR $\ge 2$ consecutive terminal failures, and current level $> 1 \implies \text{Level} - 1$.
+    - **Maintenance:** Performance between promotion and demotion thresholds, isolated single failures with adequate overall accuracy, or boundaries reached (clamped at 1 and 10).
+    - **Gradual change:** Maximum of $\pm 1$ level per evaluation.
+- **Service (`logic/adaptive_difficulty_service.dart`)**:
+  - Coordinates `GameAttemptRepository`, `AdaptiveDifficultyRepository`, and `AdaptiveDifficultyPolicy`.
+  - **Write Minimization:** Persists updates to the database only when `hasDifficultyChanged` is true, avoiding redundant disk I/O.
+- **Persistence (`data/drift_adaptive_difficulty_repository.dart`)**:
+  - Stored in Drift SQLite via table `PlayerGameProfiles` (schema version 2).
+  - Migration strategy: safely creates `PlayerGameProfiles` when upgrading from schema version 1, preserving all existing game attempts and settings.
+- **Game Integration (`MemoryGridCubit`)**:
+  - Loads persisted effective difficulty asynchronously on initial load if no explicit level override is provided.
+  - Evaluates adaptation strictly after the terminal attempt has been successfully persisted (`saveSucceeded == true`), preventing adaptation on unrecorded games.
+  - Displays non-intrusive status banners on the result view (`Difficulty Increased`, `Difficulty Adjusted`, `Adaptive Training Active`).
+  - Automatically adopts the updated recommended difficulty when the user taps "Play Again".
 
 ### 3.4. Local Persistence Architecture
 - **Engine:** Drift (SQLite) for structured relational queries (attempts, streaks, difficulty logs) + `shared_preferences` for basic flags (dark mode, audio enabled, onboarding completed).
