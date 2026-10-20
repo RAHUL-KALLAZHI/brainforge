@@ -1,3 +1,4 @@
+import 'dart:async';
 import '../domain/game_attempt.dart';
 
 /// Repository interface for storing and querying game attempt history.
@@ -26,6 +27,12 @@ abstract class GameAttemptRepository {
   /// Retrieves all recorded attempts across all games, ordered latest first.
   Future<List<GameAttempt>> getAllAttempts({int limit = 100});
 
+  /// Stream emitting a notification whenever attempts are saved, updated, or cleared.
+  Stream<void> get onAttemptsChanged;
+
+  /// Reactive stream of all attempts across all games, ordered latest first.
+  Stream<List<GameAttempt>> watchAllAttempts({int limit = 100});
+
   /// Clears all recorded attempts (used for data wipes or testing).
   Future<void> clearAll();
 }
@@ -33,10 +40,31 @@ abstract class GameAttemptRepository {
 /// In-memory implementation of [GameAttemptRepository] for offline engine testing.
 class InMemoryGameAttemptRepository implements GameAttemptRepository {
   final List<GameAttempt> _attempts = [];
+  final StreamController<List<GameAttempt>> _updateController =
+      StreamController<List<GameAttempt>>.broadcast();
+  final StreamController<void> _changesController =
+      StreamController<void>.broadcast();
+
+  @override
+  Stream<void> get onAttemptsChanged => _changesController.stream;
 
   @override
   Future<void> saveAttempt(GameAttempt attempt) async {
     _attempts.add(attempt);
+    _updateController.add(List.unmodifiable(_attempts));
+    _changesController.add(null);
+  }
+
+  @override
+  Stream<List<GameAttempt>> watchAllAttempts({int limit = 100}) async* {
+    final sorted = List<GameAttempt>.from(_attempts)
+      ..sort((a, b) => b.completedAt.compareTo(a.completedAt));
+    yield sorted.take(limit).toList();
+    await for (final list in _updateController.stream) {
+      final s = List<GameAttempt>.from(list)
+        ..sort((a, b) => b.completedAt.compareTo(a.completedAt));
+      yield s.take(limit).toList();
+    }
   }
 
   @override
@@ -77,5 +105,7 @@ class InMemoryGameAttemptRepository implements GameAttemptRepository {
   @override
   Future<void> clearAll() async {
     _attempts.clear();
+    _updateController.add(const []);
+    _changesController.add(null);
   }
 }

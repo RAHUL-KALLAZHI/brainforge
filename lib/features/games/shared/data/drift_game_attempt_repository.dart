@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:drift/drift.dart';
 import '../../../../core/database/app_database.dart';
@@ -22,8 +23,13 @@ class GameAttemptRepositoryException implements Exception {
 /// Ensures game attempt history, personal bests, and analytics survive app restarts.
 class DriftGameAttemptRepository implements GameAttemptRepository {
   final AppDatabase _db;
+  final StreamController<void> _changesController =
+      StreamController<void>.broadcast();
 
   DriftGameAttemptRepository(this._db);
+
+  @override
+  Stream<void> get onAttemptsChanged => _changesController.stream;
 
   @override
   Future<void> saveAttempt(GameAttempt attempt) async {
@@ -35,6 +41,7 @@ class DriftGameAttemptRepository implements GameAttemptRepository {
             companion,
             mode: InsertMode.insertOrReplace,
           );
+      _changesController.add(null);
     } catch (e) {
       if (e is ArgumentError) rethrow;
       throw GameAttemptRepositoryException(
@@ -140,6 +147,7 @@ class DriftGameAttemptRepository implements GameAttemptRepository {
   }
 
   /// Reactive stream of all attempts across all games.
+  @override
   Stream<List<GameAttempt>> watchAllAttempts({int limit = 100}) {
     final query = _db.select(_db.gameAttempts)
       ..orderBy([
@@ -156,6 +164,7 @@ class DriftGameAttemptRepository implements GameAttemptRepository {
   Future<void> clearAll() async {
     try {
       await _db.delete(_db.gameAttempts).go();
+      _changesController.add(null);
     } catch (e) {
       throw GameAttemptRepositoryException(
           'Failed to clear attempt history: $e', e);

@@ -45,6 +45,9 @@ test/
 │   ├── adaptive_difficulty_policy_test.dart         # Pure-Dart promotion, demotion, maintain, threshold boundaries, NaN safety
 │   ├── adaptive_difficulty_service_test.dart        # Coordination, write-minimization, profile updates
 │   ├── challenge_generator_test.dart                # Seed reproducibility, sequence pools, configs
+│   ├── color_echo_adaptive_integration_test.dart    # Isolated Color Echo adaptation, 3 qualifying wins, demotion, real Drift SQLite
+│   ├── color_echo_cubit_test.dart                   # Countdown, preview pacing, input gating, timeout, concurrency guard, attempts
+│   ├── color_echo_engine_test.dart                  # Deterministic sequences, duplicates allowed, 1-10 difficulty configs, tap evaluation
 │   ├── drift_adaptive_difficulty_repository_test.dart# SQLite CRUD, schema v1->v2 migration, data preservation
 │   ├── drift_game_attempt_repository_test.dart      # Persistent SQLite attempt storage, aggregation queries
 │   ├── game_attempt_repository_test.dart            # In-memory storage, median response times, bests
@@ -61,6 +64,7 @@ test/
 │   └── theme_test.dart                              # Light/dark palette tokens, contrast, extensions
 └── widget/
     ├── app_startup_test.dart                        # App launch, theme hydration, shell rendering
+    ├── color_echo_widget_test.dart                  # Catalog launch, 4 pads, input gating, results, promotion/demotion, exit dialog
     ├── memory_grid_widget_test.dart                 # Catalog launch, 3x3 board, inputs, results, exit dialog, adaptive banners, narrow screens
     ├── navigation_test.dart                         # 5-tab switching, bottom sheet, 404 fallback
     ├── progress_dashboard_widget_test.dart          # Hero card, metrics cards, empty state, data clearing
@@ -75,7 +79,7 @@ test/
 ```bash
 fvm flutter test
 ```
-*Current Status:* **142 / 142 tests passing** (100% pass rate across 22 test suites).
+*Current Status:* **200 / 200 tests passing** (100% pass rate across 26 test suites).
 
 ### Running Static Analysis
 ```bash

@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../games/shared/data/adaptive_difficulty_repository.dart';
 import '../../games/shared/data/game_attempt_repository.dart';
@@ -10,6 +12,7 @@ import 'progress_state.dart';
 class ProgressCubit extends Cubit<ProgressState> {
   final GameAttemptRepository _repository;
   final AdaptiveDifficultyRepository? _difficultyRepository;
+  StreamSubscription<void>? _changesSubscription;
 
   ProgressCubit(
     this._repository, {
@@ -21,13 +24,28 @@ class ProgressCubit extends Cubit<ProgressState> {
 
   void _init() {
     loadProgress();
+    _changesSubscription = _repository.onAttemptsChanged.listen((_) {
+      loadProgress();
+    });
+  }
+
+  @override
+  Future<void> close() {
+    _changesSubscription?.cancel();
+    return super.close();
   }
 
   /// Refreshes all statistics from the persistent database.
   Future<void> loadProgress() async {
     try {
-      emit(const ProgressLoading());
+      if (state is! ProgressLoaded) {
+        emit(const ProgressLoading());
+      }
       final attempts = await _repository.getAllAttempts(limit: 100);
+      debugPrint(
+        '[ProgressCubit] loadProgress: count=${attempts.length}, '
+        'top=${attempts.isNotEmpty ? "${attempts.first.id} (gameId=${attempts.first.gameId}, name=${attempts.first.gameDisplayName})" : "none"}',
+      );
       GameDifficulty? mgDifficulty;
       if (_difficultyRepository != null) {
         try {

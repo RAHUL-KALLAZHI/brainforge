@@ -191,6 +191,31 @@ Located under `lib/features/games/memory_grid/`:
   - `memory_grid_ready_view.dart`: Introductory view with difficulty level selector and gameplay tips.
   - `memory_grid_result_view.dart`: Terminal scorecard with scaled score, accuracy, duration, and replay/return actions.
 
+### 3.6. Color Echo Module Architecture (Phase 6.1)
+Located under `lib/features/games/color_echo/`:
+- **Domain (`domain/color_echo_config.dart`)**:
+  - Encapsulates 4 multi-sensory color pads: Cyan Diamond, Violet Hexagon, Amber Star, Green Circle.
+  - Generates deterministic `GameConfig` presets across Difficulty Levels 1 to 10 (sequence length 3–12, presentation duration 800ms–350ms, inter-pad gap 200ms–100ms, response limit 15s).
+- **Engine (`logic/color_echo_engine.dart`)**:
+  - Implements `GameEngine<SequenceChallenge, int>`.
+  - Configures `SeededSequenceGenerator(allowDuplicates: true)` over 4 pad targets ($0..3$).
+  - Evaluates user tap sequence step-by-step against generated challenge sequence.
+- **State (`logic/color_echo_state.dart`)**:
+  - Immutable `ColorEchoState` with Equatable.
+  - Holds `activePreviewPadIndex`, `currentStepIndex`, `playerSelections`, and `AdaptationDecision`.
+  - Enforces strict input gating: `isInputAllowed` requires `status == GameStatus.playing` and `phase == GamePhase.input`.
+- **Controller (`logic/color_echo_cubit.dart`)**:
+  - Subclasses `Cubit<ColorEchoState>`.
+  - Handles deterministic pre-game countdown (3s), sequential pad illumination with session cancellation protection (`_currentSessionId`), input recording, round response timer, and auto-save via `GameAttemptRepository`.
+  - Integrates with `AdaptiveDifficultyService` under isolated `'color_echo'` game profile.
+- **Presentation (`presentation/`)**:
+  - `color_echo_screen.dart`: Root view with `PopScope` exit protection and dialog.
+  - `widgets/color_echo_board.dart`: 2×2 quad-pad responsive board with step progress tracker.
+  - `widgets/color_echo_pad.dart`: Accessible, tactile colored pad with neon glow, icon shape, and Semantic labels.
+  - `widgets/color_echo_header.dart`: Top app bar displaying difficulty, current status, and round timer.
+  - `widgets/color_echo_ready_view.dart`: Pre-game view with multi-sensory pad previews, difficulty slider, and instructions.
+  - `widgets/color_echo_result_view.dart`: Outcome screen with metrics, adaptive promotion banner, Continue, Proceed, Replay, and Return to Game actions.
+
 ---
 
 ## 4. Visual Design System Specifications

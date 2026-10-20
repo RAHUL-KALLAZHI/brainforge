@@ -203,3 +203,28 @@ The player's adaptive difficulty level must persist across application restarts.
 - Seamless, automated schema upgrade for existing installations without data loss.
 - High database write efficiency and battery preservation.
 
+---
+
+## ADR 013: Color Echo Multi-Sensory Architecture, Concurrency Guard, and Profile Isolation
+
+### Context
+Phase 6.1 introduces Color Echo, the second playable cognitive training mini-game in BrainForge. It requires:
+1. Multi-sensory pad differentiation that never relies solely on color (for WCAG AAA / color-blindness accessibility).
+2. Repeated symbols in sequences (`allowDuplicates: true`), contrasting with Memory Grid's unique-tile rule.
+3. Safe asynchronous preview playback that eliminates race conditions upon user restart or back navigation.
+4. Complete isolation of attempt history, adaptive progression profiles, and scoring from Memory Grid.
+
+### Decision
+1. **Multi-Sensory Differentiation:** Construct 4 fixed quadrants with distinct base and active illumination states, geometric shapes (Diamond, Hexagon, Star, Circle), and explicit Semantics labels.
+2. **Engine & PRNG Reuse:** Use existing pure-Dart `GameEngine<SequenceChallenge, int>` paired with `SeededSequenceGenerator(allowDuplicates: true)` over 4 targets.
+3. **Session ID Concurrency Guard:** Protect sequential playback intervals via an integer `_currentSessionId` incremented on every session restart or disposal. Pending asynchronous delays verify `_currentSessionId == sessionId` before mutating state.
+4. **Zero-Migration Database Isolation:** Leverage existing Drift tables (`game_attempts` and `player_game_profiles`) which already key on `gameId: String`. Color Echo uses `'color_echo'`, achieving 100% data and adaptive history isolation without modifying the SQLite schema or running migrations.
+5. **Phase 5 Result UI Alignment:** Adopt the separated action model: `Continue · Level N` vs. `Proceed to Level N+1` vs. `Replay Level N` vs. `Play Again · Level N`.
+
+### Consequences
+- Zero schema changes or database migrations required to add new game modes.
+- Memory Grid and Color Echo state, history, and adaptive profiles operate with zero cross-talk.
+- Fast restarts and UI pop actions do not leave dangling playback timers or memory leaks.
+- 100% testable deterministically using `ControllableTestTicker` and in-memory Drift databases.
+
+

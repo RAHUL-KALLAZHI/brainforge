@@ -11,6 +11,7 @@ import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_chip.dart';
 import '../../../core/widgets/app_header.dart';
 import '../../games/shared/domain/game_attempt.dart';
+import '../../games/shared/domain/game_registry.dart';
 import '../../games/shared/domain/game_status.dart';
 import '../logic/progress_cubit.dart';
 import '../logic/progress_state.dart';
@@ -335,6 +336,10 @@ class _ProgressDashboardView extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.sm),
         ...attempts.map((attempt) {
+          debugPrint(
+            '[ProgressUI] Attempt item: id=${attempt.id}, '
+            'gameId=${attempt.gameId}, name=${attempt.gameDisplayName}',
+          );
           final isCompleted = attempt.status == GameStatus.completed;
           final isFailed = attempt.status == GameStatus.failed;
 
@@ -345,21 +350,27 @@ class _ProgressDashboardView extends StatelessWidget {
           final statusLabel =
               isCompleted ? 'Completed' : (isFailed ? 'Failed' : 'Abandoned');
 
+          final gameAccentColor =
+              _getGameAccentColor(attempt.gameId, customTheme);
+          final gameIcon = _getGameIcon(attempt.gameId);
+
           return Padding(
+            key: ValueKey('recent_attempt_${attempt.id}'),
             padding: const EdgeInsets.only(bottom: AppSpacing.sm),
             child: AppCard(
+              key: ValueKey('recent_attempt_card_${attempt.id}'),
               padding: AppSpacing.compactCardPadding,
               child: Row(
                 children: [
                   Container(
                     padding: const EdgeInsets.all(AppSpacing.sm),
                     decoration: BoxDecoration(
-                      color: customTheme.accentViolet.withValues(alpha: 0.15),
+                      color: gameAccentColor.withValues(alpha: 0.15),
                       borderRadius: AppSpacing.roundedSm,
                     ),
                     child: Icon(
-                      Icons.grid_4x4_rounded,
-                      color: customTheme.accentViolet,
+                      gameIcon,
+                      color: gameAccentColor,
                       size: 20,
                     ),
                   ),
@@ -371,7 +382,7 @@ class _ProgressDashboardView extends StatelessWidget {
                         Row(
                           children: [
                             Text(
-                              'Memory Grid',
+                              attempt.gameDisplayName,
                               style: AppTypography.titleMedium.copyWith(
                                 color: theme.colorScheme.onSurface,
                               ),
@@ -407,6 +418,43 @@ class _ProgressDashboardView extends StatelessWidget {
         }),
       ],
     );
+  }
+
+  static IconData _getGameIcon(String gameId) {
+    switch (gameId) {
+      case GameRegistry.memoryGrid:
+        return Icons.grid_4x4_rounded;
+      case GameRegistry.colorEcho:
+        return Icons.music_note_rounded;
+      case GameRegistry.focusHunter:
+        return Icons.center_focus_strong_rounded;
+      case GameRegistry.vanishingCards:
+        return Icons.style_rounded;
+      case GameRegistry.reverseRecall:
+        return Icons.swap_horiz_rounded;
+      case GameRegistry.mindSwitch:
+        return Icons.alt_route_rounded;
+      default:
+        return Icons.extension_rounded;
+    }
+  }
+
+  static Color _getGameAccentColor(
+    String gameId,
+    BrainForgeThemeExtension customTheme,
+  ) {
+    switch (gameId) {
+      case GameRegistry.colorEcho:
+        return customTheme.accentAmber;
+      case GameRegistry.focusHunter:
+        return customTheme.accentCyan;
+      case GameRegistry.memoryGrid:
+      case GameRegistry.vanishingCards:
+      case GameRegistry.reverseRecall:
+      case GameRegistry.mindSwitch:
+      default:
+        return customTheme.accentViolet;
+    }
   }
 
   static String _formatAttemptDate(DateTime dateTime) {

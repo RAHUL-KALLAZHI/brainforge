@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'game_registry.dart';
 import 'game_result.dart';
 import 'game_status.dart';
 
@@ -33,6 +34,9 @@ class GameAttempt extends Equatable {
     required this.completedAt,
     this.seed,
   });
+
+  /// Resolves the human-readable display name for this attempt's game mode.
+  String get gameDisplayName => GameRegistry.getDisplayName(gameId);
 
   /// Factory converting a completed [GameResult] into a persistent [GameAttempt].
   factory GameAttempt.fromResult({

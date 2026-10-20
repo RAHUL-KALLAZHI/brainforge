@@ -115,10 +115,22 @@
 - [x] 142 automated tests passing, 0 analyzer issues, Android debug build verified.
 
 ### Phase 6: Additional Game Modes
+
+#### Phase 6.1: Color Echo (Complete)
+- [x] Pure-Dart engine logic reusing `GameEngine<SequenceChallenge, int>` with `SeededSequenceGenerator(allowDuplicates: true)`.
+- [x] 4 multi-sensory color pads (Cyan, Violet, Amber, Green) with distinct shapes, neon active illuminations, and accessibility semantics.
+- [x] Standardized 1–10 difficulty scaling: sequence lengths 3 to 12, presentation durations 800ms to 350ms, gaps 200ms to 100ms.
+- [x] State machine input gating during countdown and playback preview.
+- [x] Drift SQLite persistence via `GameAttemptRepository` using unique `'color_echo'` game ID.
+- [x] Adaptive difficulty integration isolated from Memory Grid; 3 qualifying wins (≥90% accuracy) required for promotion.
+- [x] Results screen UX adhering to Phase 5 standards: Continue, Proceed to Next Level, Replay, Return to Game.
+- [x] Catalog integration: "Playable" badge and modal launching `/games/color-echo`.
+- [x] Comprehensive test suite: 36 new automated tests (11 unit engine, 11 unit cubit, 5 adaptive integration, 9 widget), bringing project total to 200 passing tests with 0 analyzer issues.
+
+#### Phase 6.2+: Upcoming Game Modes (Pending)
 - [ ] **Game C: Focus Hunter** (Target identification among visually similar distractors).
 - [ ] **Game D: Vanishing Cards** (Brief exposure of card layouts, recall location/symbol).
 - [ ] **Game E: Reverse Recall** (Sequence reproduction in reverse order or transformed order).
-- [ ] **Game B: Color Echo** (Multi-sensory Simon-style sequence with sound + visual fallback).
 - [ ] **Game F: Mind Switch** (Task-switching cognitive flexibility with dynamic rule changes).
 - [ ] Unit and widget test suite for each mode.
 

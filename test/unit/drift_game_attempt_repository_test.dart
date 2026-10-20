@@ -291,5 +291,75 @@ void main() {
       expect(db.gameAttempts.actualTableName, equals('game_attempts'));
       expect(db.gameAttempts.$columns.length, equals(13));
     });
+
+    test(
+        'correctly persists and isolates interleaved Memory Grid and Color Echo attempts',
+        () async {
+      final base = DateTime.now();
+
+      final mgA = createTestAttempt(
+        id: 'mg_a',
+        gameId: 'memory_grid',
+        finalScore: 1000,
+        completedAt: base.subtract(const Duration(minutes: 4)),
+      );
+      final ceB = createTestAttempt(
+        id: 'ce_b',
+        gameId: 'color_echo',
+        finalScore: 1200,
+        completedAt: base.subtract(const Duration(minutes: 3)),
+      );
+      final mgC = createTestAttempt(
+        id: 'mg_c',
+        gameId: 'memory_grid',
+        finalScore: 1500,
+        completedAt: base.subtract(const Duration(minutes: 2)),
+      );
+      final ceD = createTestAttempt(
+        id: 'ce_d',
+        gameId: 'color_echo',
+        finalScore: 1800,
+        completedAt: base.subtract(const Duration(minutes: 1)),
+      );
+
+      await repository.saveAttempt(mgA);
+      await repository.saveAttempt(ceB);
+      await repository.saveAttempt(mgC);
+      await repository.saveAttempt(ceD);
+
+      // Verify all attempts query returns interleaved records in latest-first order
+      final all = await repository.getAllAttempts();
+      expect(all.length, equals(4));
+      expect(all[0].id, equals('ce_d'));
+      expect(all[0].gameId, equals('color_echo'));
+      expect(all[0].gameDisplayName, equals('Color Echo'));
+
+      expect(all[1].id, equals('mg_c'));
+      expect(all[1].gameId, equals('memory_grid'));
+      expect(all[1].gameDisplayName, equals('Memory Grid'));
+
+      expect(all[2].id, equals('ce_b'));
+      expect(all[2].gameId, equals('color_echo'));
+      expect(all[2].gameDisplayName, equals('Color Echo'));
+
+      expect(all[3].id, equals('mg_a'));
+      expect(all[3].gameId, equals('memory_grid'));
+      expect(all[3].gameDisplayName, equals('Memory Grid'));
+
+      // Verify independent game queries
+      final mgOnly = await repository.getAttempts(gameId: 'memory_grid');
+      expect(mgOnly.length, equals(2));
+      expect(mgOnly[0].id, equals('mg_c'));
+      expect(mgOnly[0].gameId, equals('memory_grid'));
+      expect(mgOnly[1].id, equals('mg_a'));
+      expect(mgOnly[1].gameId, equals('memory_grid'));
+
+      final ceOnly = await repository.getAttempts(gameId: 'color_echo');
+      expect(ceOnly.length, equals(2));
+      expect(ceOnly[0].id, equals('ce_d'));
+      expect(ceOnly[0].gameId, equals('color_echo'));
+      expect(ceOnly[1].id, equals('ce_b'));
+      expect(ceOnly[1].gameId, equals('color_echo'));
+    });
   });
 }

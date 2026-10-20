@@ -9,6 +9,7 @@ import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_chip.dart';
 import '../../../core/widgets/app_header.dart';
+import '../shared/domain/game_registry.dart';
 
 class _GameInfo {
   final String id;
@@ -38,7 +39,7 @@ class GamesCatalogScreen extends StatelessWidget {
 
   static const List<_GameInfo> _games = [
     _GameInfo(
-      id: 'memory_grid',
+      id: GameRegistry.memoryGrid,
       title: 'Memory Grid',
       domain: 'Visual Memory',
       description:
@@ -52,7 +53,7 @@ class GamesCatalogScreen extends StatelessWidget {
           'and display intervals. Available in Phase 3.',
     ),
     _GameInfo(
-      id: 'focus_hunter',
+      id: GameRegistry.focusHunter,
       title: 'Focus Hunter',
       domain: 'Selective Attention',
       description:
@@ -66,7 +67,7 @@ class GamesCatalogScreen extends StatelessWidget {
           'Available in Phase 6.',
     ),
     _GameInfo(
-      id: 'vanishing_cards',
+      id: GameRegistry.vanishingCards,
       title: 'Vanishing Cards',
       domain: 'Spatial Recall',
       description:
@@ -79,7 +80,7 @@ class GamesCatalogScreen extends StatelessWidget {
           'speed under varying exposure windows. Available in Phase 6.',
     ),
     _GameInfo(
-      id: 'reverse_recall',
+      id: GameRegistry.reverseRecall,
       title: 'Reverse Recall',
       domain: 'Working Memory',
       description:
@@ -92,20 +93,20 @@ class GamesCatalogScreen extends StatelessWidget {
           'rather than passive rehearsal. Available in Phase 6.',
     ),
     _GameInfo(
-      id: 'color_echo',
+      id: GameRegistry.colorEcho,
       title: 'Color Echo',
       domain: 'Audio-Visual Memory',
       description:
           'Follow the multi-sensory color and sound sequence with accessible cues.',
       icon: Icons.music_note_rounded,
-      phaseAvailability: 'Phase 6',
+      phaseAvailability: 'Playable',
       chipColor: AppChipColor.amber,
       details:
-          'Color Echo integrates auditory tones and visual flashes with a 100% accessible '
-          'visual fallback for quiet environments. Available in Phase 6.',
+          'Color Echo integrates visual flashes and distinct spatial pads with a 100% accessible '
+          'visual fallback. Available now in Phase 6.1.',
     ),
     _GameInfo(
-      id: 'mind_switch',
+      id: GameRegistry.mindSwitch,
       title: 'Mind Switch',
       domain: 'Cognitive Flexibility',
       description:
@@ -218,7 +219,7 @@ class GamesCatalogScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: AppSpacing.xl),
-                if (game.id == 'memory_grid') ...[
+                if (game.id == GameRegistry.memoryGrid) ...[
                   AppButton(
                     key: const Key('play_memory_grid_button'),
                     label: 'Play Memory Grid',
@@ -227,6 +228,19 @@ class GamesCatalogScreen extends StatelessWidget {
                     onPressed: () {
                       Navigator.of(context).pop();
                       router.push(AppKeys.memoryGridPath);
+                    },
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                ],
+                if (game.id == GameRegistry.colorEcho) ...[
+                  AppButton(
+                    key: const Key('play_color_echo_button'),
+                    label: 'Play Color Echo',
+                    icon: Icons.play_arrow_rounded,
+                    isFullWidth: true,
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      router.push(AppKeys.colorEchoPath);
                     },
                   ),
                   const SizedBox(height: AppSpacing.md),

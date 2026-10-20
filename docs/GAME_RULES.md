@@ -178,3 +178,67 @@ The adaptive difficulty system continuously tracks player performance and adjust
 - **Decoupled Scoring:** Historical scores, earned points, and leaderboards remain untouched. Skill assessment governs only future session challenge generation.
 - **Independent Game Profiles:** Adaptive progression in Memory Grid does not alter difficulty in any other game mode.
 
+---
+
+## 8. Color Echo Gameplay Mechanics (Phase 6.1)
+
+Color Echo tests working memory, audio-visual pattern recognition, and sustained sequential focus through an electronic pattern-reproduction mechanic.
+
+### 8.1 4-Pad Audio-Visual Matrix
+
+Color Echo uses a fixed 2×2 quad-pad matrix with multi-sensory differentiation so state never depends on color alone:
+
+| Pad Index | Pad Name | Base Color | Active Illumination | Shape / Icon | Accessibility Semantic |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **0** | **Cyan** | `0x3300E5FF` (dark cyan) | `0xFF00E5FF` (neon electric cyan) | Diamond (`Icons.diamond_rounded`) | Cyan Diamond pad, Upper-left |
+| **1** | **Violet** | `0x337C4DFF` (dark violet) | `0xFF7C4DFF` (vivid violet) | Hexagon (`Icons.hexagon_rounded`) | Violet Hexagon pad, Upper-right |
+| **2** | **Amber** | `0x33FFAB00` (dark amber) | `0xFFFFAB00` (bright amber) | Star (`Icons.star_rounded`) | Amber Star pad, Lower-left |
+| **3** | **Green** | `0x3300E676` (dark emerald) | `0xFF00E676` (neon emerald green) | Circle (`Icons.circle_rounded`) | Green Circle pad, Lower-right |
+
+### 8.2 Gameplay Flow & Input Gating
+
+1. **Ready Screen:** Displays instructions, multi-sensory pad preview, starting difficulty slider (Levels 1–10), and a Start Game action.
+2. **Countdown:** A deterministic 3-second countdown (`3.. 2.. 1..`). Pad inputs are strictly disabled.
+3. **Sequence Preview (Playback):**
+   - Pads illuminate sequentially with their active neon tint, 3.5px white border, and 24px colored drop shadow glow.
+   - Sequence allows duplicate consecutive or repeated colors (`allowDuplicates: true`).
+   - Touch inputs remain strictly locked (`isInputAllowed == false`).
+   - Asynchronous playback handles session cancellation safely via incrementing session IDs.
+4. **Interactive Recall (Input Phase):**
+   - Illuminations extinguish, and player input unlocks (`isInputAllowed == true`).
+   - A 15-second response countdown begins.
+   - Pad taps provide instant tactile feedback (bright active flash).
+   - Correct tap: Increments player sequence step; progress header updates (`Echo: X of N pads`).
+   - Incorrect tap: Highlights error; immediately resolves session as `GameStatus.failed`.
+5. **Terminal Resolution & Scoring:**
+   - **Success (`GameStatus.completed`):** Entire sequence accurately reproduced. Composite score calculated via standard `ScoringService`.
+   - **Failure (`GameStatus.failed`):** Incorrect pad tapped or time limit expired. Attempt persisted with actual correct count and 0% accuracy.
+   - **Abandonment (`GameStatus.abandoned`):** Back navigation during active play prompts confirmation dialog. If confirmed, saved as abandoned with score clamped to 0.
+6. **Results & Adaptive Progression:**
+   - Standard action semantics:
+     - Promoted: `Proceed to Level N+1`, `Replay Level N`, `Return to Game`.
+     - Normal win: `Continue · Level N`, `Return to Game`.
+     - Failure: `Play Again · Level N`, `Return to Game`.
+
+### 8.3 Difficulty Mapping (Levels 1 to 10)
+
+| Difficulty Level | Tier Name | Sequence Length | Presentation Duration | Gap Duration | Response Limit |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Level 1** | Beginner | 3 | 800ms | 200ms | 15s |
+| **Level 2** | Beginner | 4 | 750ms | 180ms | 15s |
+| **Level 3** | Intermediate | 5 | 700ms | 170ms | 15s |
+| **Level 4** | Intermediate | 6 | 650ms | 160ms | 15s |
+| **Level 5** | Advanced | 7 | 600ms | 150ms | 15s |
+| **Level 6** | Advanced | 8 | 550ms | 140ms | 15s |
+| **Level 7** | Expert | 9 | 500ms | 130ms | 15s |
+| **Level 8** | Expert | 10 | 450ms | 120ms | 15s |
+| **Level 9** | Master | 11 | 400ms | 110ms | 15s |
+| **Level 10** | Master | 12 | 350ms | 100ms | 15s |
+
+### 8.4 Persistence & Adaptive Isolation
+
+- **Game Identifier:** Stored as `'color_echo'` in `game_attempts` and `player_game_profiles`.
+- **Profile Isolation:** Evaluated independently by `AdaptiveDifficultyService`. Memory Grid history never influences Color Echo, and vice-versa.
+- **Progression Contract:** Requires 3 consecutive qualifying wins with $\ge 90\%$ accuracy at the current level to promote. Two consecutive failures demote by 1 level (bounded to Level 1–10).
+
+
