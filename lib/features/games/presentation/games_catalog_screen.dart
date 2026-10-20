@@ -71,11 +71,11 @@ class GamesCatalogScreen extends StatelessWidget {
       description:
           'Briefly examine revealed cards, then identify target locations once hidden.',
       icon: Icons.style_rounded,
-      phaseAvailability: 'Phase 6',
+      phaseAvailability: 'Playable',
       chipColor: AppChipColor.violet,
       details:
           'Vanishing Cards challenges short-term spatial layout retention and recall '
-          'speed under varying exposure windows. Available in Phase 6.',
+          'speed under varying exposure windows. Available now in Phase 6.3.',
     ),
     _GameInfo(
       id: GameRegistry.reverseRecall,
@@ -252,6 +252,19 @@ class GamesCatalogScreen extends StatelessWidget {
                     onPressed: () {
                       Navigator.of(context).pop();
                       router.push(AppKeys.focusHunterPath);
+                    },
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                ],
+                if (game.id == GameRegistry.vanishingCards) ...[
+                  AppButton(
+                    key: const Key('play_vanishing_cards_button'),
+                    label: 'Play Vanishing Cards',
+                    icon: Icons.play_arrow_rounded,
+                    isFullWidth: true,
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      router.push(AppKeys.vanishingCardsPath);
                     },
                   ),
                   const SizedBox(height: AppSpacing.md),

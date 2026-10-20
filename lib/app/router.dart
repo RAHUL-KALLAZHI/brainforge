@@ -4,6 +4,7 @@ import '../core/constants/app_keys.dart';
 import '../features/games/color_echo/presentation/color_echo_screen.dart';
 import '../features/games/focus_hunter/presentation/focus_hunter_screen.dart';
 import '../features/games/memory_grid/presentation/memory_grid_screen.dart';
+import '../features/games/vanishing_cards/presentation/vanishing_cards_screen.dart';
 import '../features/games/presentation/games_catalog_screen.dart';
 import '../features/home/presentation/home_screen.dart';
 import '../features/navigation/navigation_shell.dart';
@@ -54,6 +55,13 @@ GoRouter createRouter({
         parentNavigatorKey: _rootNavigatorKey,
         path: AppKeys.focusHunterPath,
         builder: (context, state) => const FocusHunterScreen(),
+      ),
+
+      // Fullscreen Vanishing Cards game session
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: AppKeys.vanishingCardsPath,
+        builder: (context, state) => const VanishingCardsScreen(),
       ),
 
       // StatefulShellRoute preserving branch states across tabs

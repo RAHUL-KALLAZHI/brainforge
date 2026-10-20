@@ -11,6 +11,7 @@ abstract final class AppKeys {
   static const String memoryGridPath = '/games/memory-grid';
   static const String colorEchoPath = '/games/color-echo';
   static const String focusHunterPath = '/games/focus-hunter';
+  static const String vanishingCardsPath = '/games/vanishing-cards';
   static const String workoutPath = '/workout';
   static const String progressPath = '/progress';
   static const String settingsPath = '/settings';

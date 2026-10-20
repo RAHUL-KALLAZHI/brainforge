@@ -399,4 +399,107 @@ void main() {
     expect(find.text('3 total attempts recorded'), findsOneWidget);
     expect(find.text('Personal Best Score: 2400 pts'), findsOneWidget);
   });
+
+  testWidgets(
+      'displays correct game names and icons for all 4 games (Memory Grid, Color Echo, Focus Hunter, Vanishing Cards) in recent attempts',
+      (tester) async {
+    final now = DateTime.now();
+
+    await tester.runAsync(() async {
+      // 1. Vanishing Cards attempt (most recent)
+      await repository.saveAttempt(
+        GameAttempt(
+          id: 'vc_attempt_1',
+          gameId: 'vanishing_cards',
+          difficultyLevel: 2,
+          status: GameStatus.completed,
+          finalScore: 1800,
+          accuracy: 1.0,
+          correctCount: 4,
+          incorrectCount: 0,
+          missedCount: 0,
+          responseTimesMs: const [400],
+          startedAt: now.subtract(const Duration(minutes: 5)),
+          completedAt: now.subtract(const Duration(minutes: 4)),
+        ),
+      );
+
+      // 2. Focus Hunter attempt
+      await repository.saveAttempt(
+        GameAttempt(
+          id: 'fh_attempt_2',
+          gameId: 'focus_hunter',
+          difficultyLevel: 1,
+          status: GameStatus.completed,
+          finalScore: 1200,
+          accuracy: 1.0,
+          correctCount: 3,
+          incorrectCount: 0,
+          missedCount: 0,
+          responseTimesMs: const [350],
+          startedAt: now.subtract(const Duration(minutes: 10)),
+          completedAt: now.subtract(const Duration(minutes: 9)),
+        ),
+      );
+
+      // 3. Color Echo attempt
+      await repository.saveAttempt(
+        GameAttempt(
+          id: 'ce_attempt_2',
+          gameId: 'color_echo',
+          difficultyLevel: 1,
+          status: GameStatus.completed,
+          finalScore: 1100,
+          accuracy: 1.0,
+          correctCount: 3,
+          incorrectCount: 0,
+          missedCount: 0,
+          responseTimesMs: const [310],
+          startedAt: now.subtract(const Duration(minutes: 15)),
+          completedAt: now.subtract(const Duration(minutes: 14)),
+        ),
+      );
+
+      // 4. Memory Grid attempt
+      await repository.saveAttempt(
+        GameAttempt(
+          id: 'mg_attempt_4',
+          gameId: 'memory_grid',
+          difficultyLevel: 3,
+          status: GameStatus.completed,
+          finalScore: 2500,
+          accuracy: 1.0,
+          correctCount: 5,
+          incorrectCount: 0,
+          missedCount: 0,
+          responseTimesMs: const [270],
+          startedAt: now.subtract(const Duration(minutes: 20)),
+          completedAt: now.subtract(const Duration(minutes: 19)),
+        ),
+      );
+
+      await cubit.loadProgress();
+    });
+
+    await tester.pumpWidget(buildDashboard());
+    await tester.pump();
+    await tester.pumpAndSettle();
+
+    // Verify recent attempts display all 4 game names accurately
+    expect(find.text('RECENT ATTEMPTS'), findsOneWidget);
+    expect(find.text('Vanishing Cards'), findsOneWidget);
+    expect(find.text('Focus Hunter'), findsOneWidget);
+    expect(find.text('Color Echo'), findsOneWidget);
+    expect(find.text('Memory Grid'), findsWidgets);
+
+    // Verify correct icons for all 4 games
+    expect(find.byIcon(Icons.style_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.center_focus_strong_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.music_note_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.grid_4x4_rounded), findsWidgets);
+
+    // Verify stats aggregates
+    expect(find.text('4 total attempts recorded'), findsOneWidget);
+    expect(find.text('Personal Best Score: 2500 pts'), findsOneWidget);
+  });
 }
