@@ -84,11 +84,11 @@ class GamesCatalogScreen extends StatelessWidget {
       description:
           'Observe alphanumeric or symbol sequences and reproduce them backward.',
       icon: Icons.swap_horiz_rounded,
-      phaseAvailability: 'Phase 6',
+      phaseAvailability: 'Playable',
       chipColor: AppChipColor.cyan,
       details:
           'Reverse Recall requires active mental manipulation and working memory storage '
-          'rather than passive rehearsal. Available in Phase 6.',
+          'rather than passive rehearsal. Available now in Phase 6.4.',
     ),
     _GameInfo(
       id: GameRegistry.colorEcho,
@@ -265,6 +265,19 @@ class GamesCatalogScreen extends StatelessWidget {
                     onPressed: () {
                       Navigator.of(context).pop();
                       router.push(AppKeys.vanishingCardsPath);
+                    },
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                ],
+                if (game.id == GameRegistry.reverseRecall) ...[
+                  AppButton(
+                    key: const Key('play_reverse_recall_button'),
+                    label: 'Play Reverse Recall',
+                    icon: Icons.play_arrow_rounded,
+                    isFullWidth: true,
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      router.push(AppKeys.reverseRecallPath);
                     },
                   ),
                   const SizedBox(height: AppSpacing.md),

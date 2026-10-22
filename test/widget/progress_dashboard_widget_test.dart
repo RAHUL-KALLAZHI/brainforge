@@ -502,4 +502,122 @@ void main() {
     expect(find.text('4 total attempts recorded'), findsOneWidget);
     expect(find.text('Personal Best Score: 2500 pts'), findsOneWidget);
   });
+
+  testWidgets(
+      'Recent attempts feed correctly displays all 5 games interleaved with proper names, icons, and scores',
+      (tester) async {
+    final now = DateTime.now();
+
+    // 1. Reverse Recall
+    await repository.saveAttempt(
+      GameAttempt(
+        id: 'rr_attempt_1',
+        gameId: 'reverse_recall',
+        difficultyLevel: 3,
+        status: GameStatus.completed,
+        finalScore: 2100,
+        accuracy: 1.0,
+        correctCount: 5,
+        incorrectCount: 0,
+        missedCount: 0,
+        responseTimesMs: const [300],
+        startedAt: now.subtract(const Duration(minutes: 5)),
+        completedAt: now.subtract(const Duration(minutes: 4)),
+      ),
+    );
+
+    // 2. Vanishing Cards
+    await repository.saveAttempt(
+      GameAttempt(
+        id: 'vc_attempt_1',
+        gameId: 'vanishing_cards',
+        difficultyLevel: 2,
+        status: GameStatus.completed,
+        finalScore: 1800,
+        accuracy: 1.0,
+        correctCount: 4,
+        incorrectCount: 0,
+        missedCount: 0,
+        responseTimesMs: const [400],
+        startedAt: now.subtract(const Duration(minutes: 10)),
+        completedAt: now.subtract(const Duration(minutes: 9)),
+      ),
+    );
+
+    // 3. Focus Hunter
+    await repository.saveAttempt(
+      GameAttempt(
+        id: 'fh_attempt_1',
+        gameId: 'focus_hunter',
+        difficultyLevel: 2,
+        status: GameStatus.completed,
+        finalScore: 1600,
+        accuracy: 1.0,
+        correctCount: 3,
+        incorrectCount: 0,
+        missedCount: 0,
+        responseTimesMs: const [350],
+        startedAt: now.subtract(const Duration(minutes: 15)),
+        completedAt: now.subtract(const Duration(minutes: 14)),
+      ),
+    );
+
+    // 4. Color Echo
+    await repository.saveAttempt(
+      GameAttempt(
+        id: 'ce_attempt_1',
+        gameId: 'color_echo',
+        difficultyLevel: 1,
+        status: GameStatus.completed,
+        finalScore: 1200,
+        accuracy: 1.0,
+        correctCount: 3,
+        incorrectCount: 0,
+        missedCount: 0,
+        responseTimesMs: const [320],
+        startedAt: now.subtract(const Duration(minutes: 20)),
+        completedAt: now.subtract(const Duration(minutes: 19)),
+      ),
+    );
+
+    // 5. Memory Grid
+    await repository.saveAttempt(
+      GameAttempt(
+        id: 'mg_attempt_1',
+        gameId: 'memory_grid',
+        difficultyLevel: 1,
+        status: GameStatus.completed,
+        finalScore: 1000,
+        accuracy: 1.0,
+        correctCount: 3,
+        incorrectCount: 0,
+        missedCount: 0,
+        responseTimesMs: const [290],
+        startedAt: now.subtract(const Duration(minutes: 25)),
+        completedAt: now.subtract(const Duration(minutes: 24)),
+      ),
+    );
+
+    await cubit.loadProgress();
+
+    await tester.pumpWidget(buildDashboard());
+    await tester.pump();
+    await tester.pumpAndSettle();
+
+    expect(find.text('RECENT ATTEMPTS'), findsOneWidget);
+    expect(find.text('Reverse Recall'), findsOneWidget);
+    expect(find.text('Vanishing Cards'), findsOneWidget);
+    expect(find.text('Focus Hunter'), findsOneWidget);
+    expect(find.text('Color Echo'), findsOneWidget);
+    expect(find.text('Memory Grid'), findsWidgets);
+
+    // Verify icons for all 5 games
+    expect(find.byIcon(Icons.swap_horiz_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.style_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.center_focus_strong_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.music_note_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.grid_4x4_rounded), findsWidgets);
+
+    expect(find.text('5 total attempts recorded'), findsOneWidget);
+  });
 }

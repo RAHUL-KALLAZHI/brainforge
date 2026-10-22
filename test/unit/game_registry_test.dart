@@ -101,6 +101,23 @@ void main() {
       expect(memoryGridAttempt.gameId, equals('memory_grid'));
       expect(memoryGridAttempt.gameDisplayName, equals('Memory Grid'));
 
+      final reverseRecallAttempt = GameAttempt(
+        id: 'att_rr',
+        gameId: 'reverse_recall',
+        difficultyLevel: 3,
+        status: GameStatus.completed,
+        finalScore: 1800,
+        accuracy: 1.0,
+        correctCount: 5,
+        incorrectCount: 0,
+        missedCount: 0,
+        responseTimesMs: const [350],
+        startedAt: now,
+        completedAt: now,
+      );
+      expect(reverseRecallAttempt.gameId, equals('reverse_recall'));
+      expect(reverseRecallAttempt.gameDisplayName, equals('Reverse Recall'));
+
       final unknownAttempt = GameAttempt(
         id: 'att_unknown',
         gameId: 'quantum_focus',
