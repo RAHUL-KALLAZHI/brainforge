@@ -110,12 +110,12 @@ class GamesCatalogScreen extends StatelessWidget {
       description:
           'Adapt to dynamically shifting sorting and matching rules in real-time.',
       icon: Icons.alt_route_rounded,
-      phaseAvailability: 'Phase 6',
+      phaseAvailability: 'Playable',
       chipColor: AppChipColor.violet,
       details:
           'Mind Switch measures task-switching latency, cognitive flexibility, '
           'and error recovery when sorting criteria invert without warning. '
-          'Available in Phase 6.',
+          'Available now in Phase 6.5.',
     ),
   ];
 
@@ -278,6 +278,19 @@ class GamesCatalogScreen extends StatelessWidget {
                     onPressed: () {
                       Navigator.of(context).pop();
                       router.push(AppKeys.reverseRecallPath);
+                    },
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                ],
+                if (game.id == GameRegistry.mindSwitch) ...[
+                  AppButton(
+                    key: const Key('play_mind_switch_button'),
+                    label: 'Play Mind Switch',
+                    icon: Icons.play_arrow_rounded,
+                    isFullWidth: true,
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      router.push(AppKeys.mindSwitchPath);
                     },
                   ),
                   const SizedBox(height: AppSpacing.md),
